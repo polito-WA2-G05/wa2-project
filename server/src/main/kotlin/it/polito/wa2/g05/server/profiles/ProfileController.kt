@@ -27,14 +27,14 @@ class ProfileController(private val profileService: ProfileService ){
     // api/profiles
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createProfile(@RequestBody @Valid data: CreateProfileFormDTO, br: BindingResult) : ProfileDTO {
+    fun createProfile(@RequestBody @Valid data: ProfileFormDTO, br: BindingResult) : ProfileDTO {
         if (br.hasErrors()) throw ValidationException(br.fieldErrors, "Validation errors")
         return profileService.createProfile(data)
     }
 
     // /api/profiles/{email}
     @PutMapping("/{email}")
-    fun updateProfile(@PathVariable email: String, @RequestBody @Valid data: UpdateProfileFormDTO, br: BindingResult) : ProfileDTO {
+    fun updateProfile(@PathVariable email: String, @RequestBody @Valid data: ProfileFormDTO, br: BindingResult) : ProfileDTO {
         if (br.hasErrors()) throw ValidationException(br.fieldErrors, "Validation errors")
         return profileService.updateProfile(email, data)
     }

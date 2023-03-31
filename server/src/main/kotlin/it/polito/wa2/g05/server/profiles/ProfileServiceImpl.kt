@@ -13,34 +13,25 @@ class ProfileServiceImpl(private val profileRepository: ProfileRepository) : Pro
         return profile.get()
     }
 
-    override fun createProfile(data: CreateProfileFormDTO): ProfileDTO {
+    override fun createProfile(data: ProfileFormDTO): ProfileDTO {
         if (profileRepository.findByEmail(data.email!!).isPresent)
                 throw EmailAlreadyExistingException("A profile with ${data.email} as email already exists")
 
-        return profileRepository.save(Profile(data.name!!, data.surname!!, data.email!!)).toDTO()
+        return profileRepository.save(Profile(data.name!!.trim(), data.surname!!.trim(), data.email!!)).toDTO()
     }
 
-    override fun updateProfile(email: String, data: UpdateProfileFormDTO): ProfileDTO {
+    override fun updateProfile(email: String, data: ProfileFormDTO): ProfileDTO {
         val profile = profileRepository.findByEmail(email)
 
         if(profile.isEmpty){
-            throw ProfileNotFoundException("Profile not found with the $email inserted")
+            throw ProfileNotFoundException("Profile not found with the $email provided")
         }
 
         val entity = profile.get()
 
-        if (!data.name.isNullOrEmpty()){ entity.name = data.name!! }
-
-        if (!data.surname.isNullOrEmpty()){ entity.surname = data.surname!! }
-
-        if (!data.email.isNullOrEmpty()){ entity.email = data.email!! }
-
-
-        /*
-        val myString: String? = null
-        val fallbackString = "valore di fallback"
-        entity.name = data.name?.let { it } ?:entity.name
-        */
+        entity.name = data.name!!
+        entity.surname = data.surname!!
+        entity.email = data.email!!
 
         return profileRepository.save(entity).toDTO()
     }
