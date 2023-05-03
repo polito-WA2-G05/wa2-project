@@ -7,10 +7,7 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface ProfileRepository: JpaRepository<Profile, Int> {
-
-    @Query("SELECT * FROM profiles WHERE email = :email", nativeQuery = true)
+interface ProfileRepository: JpaRepository<Profile, Long> {
     fun findByEmail(@Param("email") email: String): Optional<Profile>
-
-} //Kind of object is dealing with and which primary key.
+}
 

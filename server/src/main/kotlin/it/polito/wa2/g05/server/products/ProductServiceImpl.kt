@@ -9,7 +9,7 @@ class ProductServiceImpl(private val productRepository: ProductRepository): Prod
     }
 
     override fun getProduct(ean: String): ProductDTO {
-        val product = productRepository.findById(ean).map { it.toDTO() }
+        val product = productRepository.findByEan(ean).map { it.toDTO() }
 
         if (product.isEmpty)
             throw ProductNotFoundException("Product with ean equals to $ean not found")

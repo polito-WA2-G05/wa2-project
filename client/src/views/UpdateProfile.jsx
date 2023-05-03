@@ -32,7 +32,7 @@ const UpdateProfile = () => {
 
 
     const handleSubmit = (values) => {
-        api.updateProfile(values.email, values)
+        api.updateProfile(email, values)
             .then((profile) => {
                 navigate(`/profiles/${profile.email}`)
                 notify.success(`Profile with id ${profile.id} successfully updated`)
