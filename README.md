@@ -46,6 +46,10 @@ Details of product associated with the provided ean or fail if it does not exist
 }
 ```
 
+**Error responses**
+
+- `HTTP status code 404 Not Found` (Profile Not Found Exception)
+
 ---
 
 ### Profiles APIs

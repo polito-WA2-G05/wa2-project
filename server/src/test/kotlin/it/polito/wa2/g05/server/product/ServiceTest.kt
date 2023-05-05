@@ -1,26 +1,28 @@
-package it.polito.wa2.g05.server.product
+package it.polito.wa2.g05.server.product;
 
-import it.polito.wa2.g05.server.products.Product
-import it.polito.wa2.g05.server.products.ProductRepository
+import it.polito.wa2.g05.server.products.*
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.http.*
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
+
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class IntegrationTest {
+class ServiceTest {
     companion object {
         @Container
         val postgres = PostgreSQLContainer("postgres:latest")
@@ -35,66 +37,60 @@ class IntegrationTest {
         }
     }
 
-    @LocalServerPort
-    protected var port: Int = 0
 
-    @Autowired
-    lateinit var restTemplate: TestRestTemplate
 
     @Autowired
     lateinit var productRepository: ProductRepository
 
-    private final val product = Product("4935531465706", "TestProduct1", "TestBrand1")
+    @Autowired
+    lateinit var productService: ProductService
+
+    private final val product1 = Product("4935531465706", "TestProduct1", "TestBrand1")
+    private final val product2 = Product("1547869532126", "TestProduct2", "TestBrand2")
+    private final val product3 = Product("1645876452315", "TestProduct3", "TestBrand3")
 
     @BeforeEach
     fun insertData() {
         productRepository.deleteAll()
 
-        productRepository.save(product)
+        productRepository.save(product1)
+        productRepository.save(product2)
+        productRepository.save(product3)
     }
 
     @Test
-    fun getProducts() {
-        val headers = HttpHeaders()
-        val requestEntity= HttpEntity<Unit>(headers)
+    fun getAllProducts() {
+        val products = productService.getAll()
 
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/products",
-            HttpMethod.GET,
-            requestEntity,
-            List::class.java
+        val expectedProducts = listOf(
+            product1.toDTO(),
+            product2.toDTO(),
+            product3.toDTO()
         )
 
-        Assertions.assertEquals(HttpStatus.OK, response.statusCode)
+        Assertions.assertEquals(expectedProducts, products)
     }
-    
+
     @Test
     fun getProductByEan() {
-        val headers = HttpHeaders()
-        val requestEntity= HttpEntity<Unit>(headers)
-
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/products/${product.ean}",
-            HttpMethod.GET,
-            requestEntity,
-            Product::class.java
-        )
-
-        Assertions.assertEquals(HttpStatus.OK, response.statusCode)
+        val product = productService.getProduct(product1.ean)
+        Assertions.assertEquals(product1.toDTO(), product)
     }
 
     @Test
-    fun getProductNotFound() {
-        val headers = HttpHeaders()
-        val requestEntity= HttpEntity<Unit>(headers)
+    fun getAllProductsEmptyTable() {
+        productRepository.deleteAll()
+        val products = productService.getAll()
 
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/products/fakeEan",
-            HttpMethod.GET,
-            requestEntity,
-            Product::class.java
-        )
+        val expectedProducts = listOf<ProductDTO>()
 
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
+        Assertions.assertEquals(expectedProducts, products)
+    }
+
+    @Test
+    fun getProductByEanNotFound() {
+        Assertions.assertThrows(ProductNotFoundException::class.java, {
+            productService.getProduct("2456513265978")
+        }, "Product with ean equals to 2456513265978 not found")
     }
 }
