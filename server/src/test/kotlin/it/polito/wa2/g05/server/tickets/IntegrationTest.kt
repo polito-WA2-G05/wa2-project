@@ -1,6 +1,6 @@
 package it.polito.wa2.g05.server.tickets
 
-
+import com.fasterxml.jackson.databind.ObjectMapper
 import it.polito.wa2.g05.server.products.Product
 import it.polito.wa2.g05.server.products.ProductRepository
 import it.polito.wa2.g05.server.profiles.Profile
@@ -15,9 +15,12 @@ import it.polito.wa2.g05.server.tickets.repositories.ChangeRepository
 import it.polito.wa2.g05.server.tickets.repositories.EmployeeRepository
 import it.polito.wa2.g05.server.tickets.repositories.SpecializationRepository
 import it.polito.wa2.g05.server.tickets.repositories.TicketRepository
-import it.polito.wa2.g05.server.tickets.services.TicketService
 import it.polito.wa2.g05.server.tickets.utils.PriorityLevel
 import it.polito.wa2.g05.server.tickets.utils.TicketStatus
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -26,10 +29,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
+import org.springframework.http.*
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer
@@ -37,7 +37,6 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.util.Date
 import kotlin.random.Random
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -57,14 +56,16 @@ class IntegrationTest {
         }
     }
 
-
+    final val client = OkHttpClient()
 
     @LocalServerPort
     protected var port: Int = 0
 
+    @Autowired
+    lateinit var restTemplate : TestRestTemplate
 
     @Autowired
-    lateinit var restTemplate: TestRestTemplate
+    private lateinit var objectMapper: ObjectMapper
 
     @Autowired
     lateinit var ticketRepository: TicketRepository
@@ -161,7 +162,7 @@ class IntegrationTest {
 
         var profileThatNotExists: Long = Random.nextLong()
 
-        while (profileIds.contains(profileThatNotExists) && profileThatNotExists <= 0) {
+        while (profileIds.contains(profileThatNotExists) || profileThatNotExists <= 0) {
             profileThatNotExists = Random.nextLong()
         }
 
@@ -220,7 +221,7 @@ class IntegrationTest {
         val specializationIds = specializationRepository.findAll().map { it.getId()!! }
         var specializationThatNotExists: Long = Random.nextLong()
 
-        while (specializationIds.contains(specializationThatNotExists) && specializationThatNotExists <= 0) {
+        while (specializationIds.contains(specializationThatNotExists) || specializationThatNotExists <= 0) {
             specializationThatNotExists = Random.nextLong()
         }
 
@@ -450,32 +451,29 @@ class IntegrationTest {
     fun cancelTicket() {
         val ticket = this.saveTicket(TicketStatus.OPEN)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<Unit>(headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/cancel",
-            HttpMethod.PATCH,
-            requestEntity,
-            TicketDTO::class.java
-        )
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/cancel")
+            .patch(RequestBody.create(null, ""))
+            .build()
 
-        Assertions.assertEquals(HttpStatus.OK, response.statusCode)
+        val response = client.newCall(request).execute()
+
+
+        Assertions.assertEquals(HttpStatus.OK.value(), response.code())
     }
 
     @Test
     fun cancelTicketStatusTransitionError() {
         val ticket = this.saveTicket(TicketStatus.CANCELLED)
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/cancel")
+            .patch(RequestBody.create(null, ""))
+            .build()
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<Unit>(headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/cancel",
-            HttpMethod.PATCH,
-            requestEntity,
-            Any::class.java
-        )
+        val response = client.newCall(request).execute()
 
-        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.statusCode)
+
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY.value(), response.code())
     }
 
     // Close Ticket Tests
@@ -484,32 +482,28 @@ class IntegrationTest {
     fun closeTicket() {
         val ticket = this.saveTicket(TicketStatus.RESOLVED)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<Unit>(headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/close",
-            HttpMethod.PATCH,
-            requestEntity,
-            TicketDTO::class.java
-        )
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/close")
+            .patch(RequestBody.create(null, ""))
+            .build()
 
-        Assertions.assertEquals(HttpStatus.OK, response.statusCode)
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.OK.value(), response.code())
     }
 
     @Test
     fun closeTicketStatusTransitionError() {
         val ticket = this.saveTicket(TicketStatus.CLOSED)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<Unit>(headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/close",
-            HttpMethod.PATCH,
-            requestEntity,
-            Any::class.java
-        )
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/close")
+            .patch(RequestBody.create(null, ""))
+            .build()
 
-        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.statusCode)
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY.value(), response.code())
     }
 
     // Reopen Ticket Tests
@@ -517,32 +511,28 @@ class IntegrationTest {
     fun reopenTicket() {
         val ticket = this.saveTicket(TicketStatus.RESOLVED)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<Unit>(headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/reopen",
-            HttpMethod.PATCH,
-            requestEntity,
-            TicketDTO::class.java
-        )
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/reopen")
+            .patch(RequestBody.create(null, ""))
+            .build()
 
-        Assertions.assertEquals(HttpStatus.OK, response.statusCode)
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.OK.value(), response.code())
     }
 
     @Test
     fun reopenTicketStatusTransitionError() {
         val ticket = this.saveTicket(TicketStatus.REOPENED)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<Unit>(headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/reopen",
-            HttpMethod.PATCH,
-            requestEntity,
-            Any::class.java
-        )
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/reopen")
+            .patch(RequestBody.create(null, ""))
+            .build()
 
-        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.statusCode)
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY.value(), response.code())
     }
 
     // Start Ticket Tests
@@ -551,17 +541,17 @@ class IntegrationTest {
     fun startTicket() {
         val ticket = this.saveTicket(TicketStatus.OPEN)
         val data = StartTicketFormDTO(0)
-        
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<StartTicketFormDTO>(data, headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/start",
-            HttpMethod.PATCH,
-            requestEntity,
-            TicketDTO::class.java
-        )
 
-        Assertions.assertEquals(HttpStatus.OK, response.statusCode)
+        val requestBody = objectMapper.writeValueAsString(data)
+
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/start")
+            .patch(RequestBody.create(MediaType.parse("application/json"), requestBody))
+            .build()
+
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.OK.value(), response.code())
     }
 
     @Test
@@ -569,33 +559,32 @@ class IntegrationTest {
         val ticket = this.saveTicket(TicketStatus.OPEN)
         val data = StartTicketFormDTO(4)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<StartTicketFormDTO>(data, headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/start",
-            HttpMethod.PATCH,
-            requestEntity,
-            Any::class.java
-        )
+        val requestBody = objectMapper.writeValueAsString(data)
 
-        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.statusCode)
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/start")
+            .patch(RequestBody.create(MediaType.parse("application/json"), requestBody))
+            .build()
+
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY.value(), response.code())
     }
 
     @Test
     fun startTicketNegativePriorityLevel() {
         val ticket = this.saveTicket(TicketStatus.OPEN)
         val data = StartTicketFormDTO(-32)
+        val requestBody = objectMapper.writeValueAsString(data)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<StartTicketFormDTO>(data, headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/start",
-            HttpMethod.PATCH,
-            requestEntity,
-            Any::class.java
-        )
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/start")
+            .patch(RequestBody.create(MediaType.parse("application/json"), requestBody))
+            .build()
 
-        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.statusCode)
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY.value(), response.code())
     }
 
     @Test
@@ -603,16 +592,16 @@ class IntegrationTest {
         val ticket = this.saveTicket(TicketStatus.IN_PROGRESS)
         val data = StartTicketFormDTO(0)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<StartTicketFormDTO>(data, headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/start",
-            HttpMethod.PATCH,
-            requestEntity,
-            Any::class.java
-        )
+        val requestBody = objectMapper.writeValueAsString(data)
 
-        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.statusCode)
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/start")
+            .patch(RequestBody.create(MediaType.parse("application/json"), requestBody))
+            .build()
+
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY.value(), response.code())
     }
 
     // Stop Ticket Tests
@@ -621,32 +610,28 @@ class IntegrationTest {
     fun stopTicket() {
         val ticket = this.saveTicket(TicketStatus.IN_PROGRESS)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<Unit>(headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/stop",
-            HttpMethod.PATCH,
-            requestEntity,
-            TicketDTO::class.java
-        )
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/stop")
+            .patch(RequestBody.create(null, ""))
+            .build()
 
-        Assertions.assertEquals(HttpStatus.OK, response.statusCode)
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.OK.value(), response.code())
     }
 
     @Test
     fun stopTicketStatusTransitionError() {
         val ticket = this.saveTicket(TicketStatus.OPEN)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<Unit>(headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/start",
-            HttpMethod.PATCH,
-            requestEntity,
-            Any::class.java
-        )
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/stop")
+            .patch(RequestBody.create(null, ""))
+            .build()
 
-        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.statusCode)
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY.value(), response.code())
     }
 
     // Resolve Ticket Tests
@@ -655,32 +640,28 @@ class IntegrationTest {
     fun resolveTicket() {
         val ticket = this.saveTicket(TicketStatus.OPEN)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<StartTicketFormDTO>(headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/resolve",
-            HttpMethod.PATCH,
-            requestEntity,
-            TicketDTO::class.java
-        )
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/resolve")
+            .patch(RequestBody.create(null, ""))
+            .build()
 
-        Assertions.assertEquals(HttpStatus.OK, response.statusCode)
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.OK.value(), response.code())
     }
 
     @Test
     fun resolveTicketStatusTransitionError() {
         val ticket = this.saveTicket(TicketStatus.RESOLVED)
 
-        val headers = HttpHeaders()
-        val requestEntity = HttpEntity<Unit>(headers)
-        val response = restTemplate.exchange(
-            "http://localhost:$port/api/tickets/${ticket.getId()!!}/resolve",
-            HttpMethod.PATCH,
-            requestEntity,
-            Any::class.java
-        )
+        val request = Request.Builder()
+            .url("http://localhost:$port/api/tickets/${ticket.getId()!!}/resolve")
+            .patch(RequestBody.create(null, ""))
+            .build()
 
-        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.statusCode)
+        val response = client.newCall(request).execute()
+
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY.value(), response.code())
     }
 
     // Get Ticket Tests
