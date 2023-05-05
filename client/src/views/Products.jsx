@@ -28,8 +28,12 @@ const Products = () => {
     if (!loading)
         return (
             <>
+                {products.length === 0 ? <h3 className={"fw-bold fs-2 mb-4"}>No products found</h3> :
+                    <>
                 <h3 className={"fw-bold fs-2 mb-4"}>All products</h3>
                 <ProductTable products={products}/>
+                    </>
+                }
             </>
         )
 

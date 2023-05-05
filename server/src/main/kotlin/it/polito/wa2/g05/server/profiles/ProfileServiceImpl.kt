@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service
 class ProfileServiceImpl(private val profileRepository: ProfileRepository) : ProfileService {
     override fun getProfile(email: String): ProfileDTO {
         val profile = profileRepository.findByEmail(email).map { it.toDTO() }
-
         if(profile.isEmpty){
             throw ProfileNotFoundException("Profile not found with the $email inserted")
         }
@@ -22,7 +21,6 @@ class ProfileServiceImpl(private val profileRepository: ProfileRepository) : Pro
 
     override fun updateProfile(email: String, data: ProfileFormDTO): ProfileDTO {
         val profile = profileRepository.findByEmail(email)
-
         if(profile.isEmpty){
             throw ProfileNotFoundException("Profile not found with the $email provided")
         }
