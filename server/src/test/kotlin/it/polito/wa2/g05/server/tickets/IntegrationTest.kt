@@ -37,6 +37,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.util.Date
 import kotlin.random.Random
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -56,8 +57,11 @@ class IntegrationTest {
         }
     }
 
+
+
     @LocalServerPort
     protected var port: Int = 0
+
 
     @Autowired
     lateinit var restTemplate: TestRestTemplate
