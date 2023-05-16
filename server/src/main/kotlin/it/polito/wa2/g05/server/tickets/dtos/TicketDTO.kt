@@ -1,9 +1,9 @@
 package it.polito.wa2.g05.server.tickets.dtos
 
-import it.polito.wa2.g05.server.products.ProductDTO
-import it.polito.wa2.g05.server.products.toDTO
-import it.polito.wa2.g05.server.profiles.ProfileDTO
-import it.polito.wa2.g05.server.profiles.toDTO
+import it.polito.wa2.g05.server.products.dtos.ProductDTO
+import it.polito.wa2.g05.server.products.dtos.toDTO
+import it.polito.wa2.g05.server.profiles.dtos.ProfileDTO
+import it.polito.wa2.g05.server.profiles.dtos.toDTO
 import it.polito.wa2.g05.server.tickets.entities.Ticket
 import it.polito.wa2.g05.server.tickets.utils.PriorityLevel
 import it.polito.wa2.g05.server.tickets.utils.TicketStatus

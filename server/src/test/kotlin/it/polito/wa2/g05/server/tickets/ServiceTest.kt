@@ -1,13 +1,13 @@
 package it.polito.wa2.g05.server.tickets;
 
-import it.polito.wa2.g05.server.products.Product
+import it.polito.wa2.g05.server.products.entities.Product
 import it.polito.wa2.g05.server.products.ProductNotFoundException
-import it.polito.wa2.g05.server.products.ProductRepository
-import it.polito.wa2.g05.server.products.toDTO
-import it.polito.wa2.g05.server.profiles.Profile
+import it.polito.wa2.g05.server.products.repositories.ProductRepository
+import it.polito.wa2.g05.server.products.dtos.toDTO
+import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
-import it.polito.wa2.g05.server.profiles.ProfileRepository
-import it.polito.wa2.g05.server.profiles.toDTO
+import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
+import it.polito.wa2.g05.server.profiles.dtos.toDTO
 import it.polito.wa2.g05.server.tickets.dtos.CreateTicketFormDTO
 import it.polito.wa2.g05.server.tickets.dtos.StartTicketFormDTO
 import it.polito.wa2.g05.server.tickets.dtos.toDTO
@@ -27,8 +27,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer

@@ -2,8 +2,15 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
+      <module name="AuthenticationService" target="17" />
+      <module name="AuthenticationService.main" target="17" />
+      <module name="AuthenticationService.test" target="17" />
       <module name="ticketing" target="17" />
+      <module name="ticketing.main" target="17" />
+      <module name="ticketing.test" target="17" />
       <module name="TicketingService" target="17" />
+      <module name="TicketingService.main" target="17" />
+      <module name="TicketingService.test" target="17" />
     </bytecodeTargetLevel>
   </component>
 </project>

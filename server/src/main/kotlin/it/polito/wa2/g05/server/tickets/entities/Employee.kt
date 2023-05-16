@@ -3,16 +3,20 @@ package it.polito.wa2.g05.server.tickets.entities
 import it.polito.wa2.g05.server.EntityBase
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.Table
+import java.util.UUID
 
 @Entity
 @Table(name="employees")
 class Employee (
-    var email : String = "",
-    var role : String = "",
+    @Id
+    var id: UUID? = null,
+//    var email : String = "",
+//    var role : String = "",
 
     @ManyToMany
     @JoinTable(
@@ -21,7 +25,7 @@ class Employee (
         inverseJoinColumns = [JoinColumn(name="specs_id")])
     var specializations: MutableSet<Specialization> = mutableSetOf(),
 
-    @Column(name = "is_working_on")
-    var isWorkingOn : Int = 0,
-): EntityBase<Long>()
+    @Column(name = "working_on")
+    var workingOn : Int = 0,
+)
 

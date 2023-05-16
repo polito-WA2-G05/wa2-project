@@ -1,9 +1,9 @@
 package it.polito.wa2.g05.server.tickets.services
 
 import it.polito.wa2.g05.server.products.ProductNotFoundException
-import it.polito.wa2.g05.server.products.ProductRepository
+import it.polito.wa2.g05.server.products.repositories.ProductRepository
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
-import it.polito.wa2.g05.server.profiles.ProfileRepository
+import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
 import it.polito.wa2.g05.server.tickets.TicketNotFoundException
 import it.polito.wa2.g05.server.tickets.SpecializationNotFoundException
 import it.polito.wa2.g05.server.tickets.TicketStatusNotValidException
@@ -68,7 +68,7 @@ class TicketServiceImpl(
 
     protected fun removeExpert(ticket: Ticket) {
         if (ticket.expert != null) {
-            employeeRepository.decreaseIsWorkingOn(ticket.expert!!.getId()!!)
+            employeeRepository.decreaseIsWorkingOn(ticket.expert!!.id!!)
             ticketRepository.removeExpert(ticket.getId()!!)
         }
     }
@@ -152,14 +152,14 @@ class TicketServiceImpl(
             var lowestIsWorkingOn = Int.MAX_VALUE
 
             for (employee in employees) {
-                if (employee.isWorkingOn < lowestIsWorkingOn) {
+                if (employee.workingOn < lowestIsWorkingOn) {
                     selectedEmployee = employee
-                    lowestIsWorkingOn = employee.isWorkingOn
+                    lowestIsWorkingOn = employee.workingOn
                 }
             }
 
             ticketRepository.startTicket(id, PriorityLevel.values()[data.priorityLevel!!], selectedEmployee)
-            employeeRepository.increaseIsWorkingOn(selectedEmployee.getId()!!)
+            employeeRepository.increaseIsWorkingOn(selectedEmployee.id!!)
 
             val ticket = ticketRepository.findById(id).get()
 

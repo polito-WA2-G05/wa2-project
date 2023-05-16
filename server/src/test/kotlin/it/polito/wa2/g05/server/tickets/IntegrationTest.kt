@@ -1,10 +1,10 @@
 package it.polito.wa2.g05.server.tickets
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import it.polito.wa2.g05.server.products.Product
-import it.polito.wa2.g05.server.products.ProductRepository
-import it.polito.wa2.g05.server.profiles.Profile
-import it.polito.wa2.g05.server.profiles.ProfileRepository
+import it.polito.wa2.g05.server.products.entities.Product
+import it.polito.wa2.g05.server.products.repositories.ProductRepository
+import it.polito.wa2.g05.server.profiles.entities.Profile
+import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
 import it.polito.wa2.g05.server.tickets.dtos.CreateTicketFormDTO
 import it.polito.wa2.g05.server.tickets.dtos.StartTicketFormDTO
 import it.polito.wa2.g05.server.tickets.dtos.TicketDTO

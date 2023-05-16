@@ -4,7 +4,7 @@
 
 ### Products APIs
 
-#### **`GET /api/products`**
+#### **`GET /api/public/products`**
 
 List all registered products in the database
 
@@ -25,7 +25,7 @@ List all registered products in the database
 
 ---
 
-#### **`GET /api/products/:ean`**
+#### **`GET /api/public/products/:ean`**
 
 Details of product associated with the provided ean or fail if it does not exist
 
@@ -54,7 +54,7 @@ Details of product associated with the provided ean or fail if it does not exist
 
 ### Profiles APIs
 
-#### **`GET /api/profiles/:email`**
+#### **`GET /api/public/profiles/:email`**
 
 Details of user profiles associated with the provided email or fail if it does not exist
 
@@ -82,7 +82,7 @@ JSON object containing username e password.
 
 ---
 
-#### **`POST /api/profiles/`**
+#### **`POST /api/public/profiles`**
 
 Store a new profile into the database, provided that the email address does not already exist
 
@@ -122,7 +122,7 @@ JSON object containing name, surname and email.
 
 ---
 
-#### **`PUT api/profiles/:email`**
+#### **`PUT api/customer/profiles/:email`**
 
 Edit a field of a specific profile associated with the email and fail if it does not exist
 
@@ -166,7 +166,7 @@ A JSON object containing the data of the changes to be made.
 
 
 
-#### **`POST /api/tickets`**
+#### **`POST /api/customer/tickets`**
 
 Stores a new ticket into the database for a given product
 
@@ -232,7 +232,7 @@ JSON object containing title, description, customerId, productEAN, specializatio
 ---
 
 
-#### **`PATCH /api/tickets/:id/cancel`**
+#### **`PATCH /api/customer/tickets/:id/cancel`**
 
 Sets to CANCELLED the status field of a specific ticket associated with the id provided and fails if the id does not exist
 
@@ -281,7 +281,7 @@ Sets to CANCELLED the status field of a specific ticket associated with the id p
 ---
 
 
-#### **`PATCH /api/tickets/:id/close`**
+#### **`PATCH /api/{expert,manager}/tickets/:id/close`** 
 
 Sets to CLOSED the status field of a specific ticket associated with the id provided and fails if the id does not exist
 
@@ -330,7 +330,7 @@ Sets to CLOSED the status field of a specific ticket associated with the id prov
 ---
 
 
-#### **`PATCH /api/tickets/:id/reopen`**
+#### **`PATCH /api/customer/tickets/:id/reopen`**
 
 Sets to REOPENED the status field of a specific ticket associated with the id provided and fails if the id does not exist
 
@@ -379,7 +379,7 @@ Sets to REOPENED the status field of a specific ticket associated with the id pr
 ---
 
 
-#### **`PATCH /api/tickets/:id/start`**
+#### **`PATCH /api/manager/tickets/:id/start`**
 
 Sets to IN_PROGRESS the status field of a specific ticket associated with the id provided and fails if the id does not exist.
 Automatically assigning the expert with the lowest "is working on" and the related specialization after having specified its level of priority(between 0 and 3).
@@ -453,7 +453,7 @@ JSON object containing priorityLevel
 ---
 
 
-#### **`PATCH /api/tickets/:id/stop`**
+#### **`PATCH /api/expert/tickets/:id/stop`**
 
 Sets to OPEN the status field of a specific ticket associated with the id provided and fails if the id does not exist
 
@@ -515,7 +515,7 @@ Sets to OPEN the status field of a specific ticket associated with the id provid
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
 
 ---
-#### **`PATCH /api/tickets/:id/resolve`**
+#### **`PATCH /api/{manager,expert}/tickets/:id/resolve`**
 
 Sets to RESOLVED the status field of a specific ticket associated with the id provided and fails if the id does not exist
 
@@ -565,7 +565,7 @@ Sets to RESOLVED the status field of a specific ticket associated with the id pr
 
 ---
 
-#### **`GET /api/tickets/:id`**
+#### **`GET /api/authenticated/tickets/:id`**
 
 Retrieves the ticket with the given id
 
@@ -614,7 +614,7 @@ JSON object containing the info of the ticket.
 
 ---
 
-#### **`GET /api/tickets?product={productId}`**
+#### **`GET /api/manager/tickets?product={productId}`**
 
 Retrieves all the tickets related to the product id provided
 
@@ -688,3 +688,69 @@ Array of JSON objects containing the information of the tickets associated with 
 
 - `HTTP status code 404 Not Found` (Product Not Found Exception)
 
+
+
+
+
+#### **`POST /api/public/auth/login`**
+
+Perform login
+
+**Request header:**
+- `Content-Type: application/json`
+
+**Request body:**
+
+JSON object containing username, password
+
+```json
+{
+    "username": "customer1",
+    "password": "customer"
+}
+```
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+```json
+{
+  "accessToken": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJuakQyeW82amZ5ZXhpSnhibWJCRDdlbl9sYVMzTnlUdHMxMzhSX2p6YmdzIn0.eyJleHAiOjE2ODQyNTY3NTUsImlhdCI6MTY4NDI1NjQ1NSwianRpIjoiYTAxN2EzZWMtMjY3My00NGNmLTlkNWUtOTZkYWNjZDc1ZWViIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy93YTJnMDVrZXljbG9hY2siLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiNjlhMmM0NzMtZDE0MS00NGMwLWJhZTEtMzQ1YTE5ZGU1NGRlIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoid2EyZzA1a2V5Y2xvYWNrLWNsaWVudCIsInNlc3Npb25fc3RhdGUiOiI1N2QxYzJiOS04MTVlLTQ1YjYtYjA4NC0yNzQzNzJhODJhMWIiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6ODA4MCJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXdhMmcwNWtleWNsb2FjayIsImFwcF9jdXN0b21lciIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJ3YTJnMDVrZXljbG9hY2stY2xpZW50Ijp7InJvbGVzIjpbIkN1c3RvbWVyIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwic2lkIjoiNTdkMWMyYjktODE1ZS00NWI2LWIwODQtMjc0MzcyYTgyYTFiIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInByZWZlcnJlZF91c2VybmFtZSI6ImN1c3RvbWVyMSIsImdpdmVuX25hbWUiOiIiLCJmYW1pbHlfbmFtZSI6IiIsImVtYWlsIjoiY3VzdG9tZXIxQG1haWwuY29tIn0.L_etrqDXmhPXIyFFiFuGn4VudnuFyOf5MSyY6ZNgvfB65MKGBhq-6fNGAeTdf8fcpeVH9-9hLmorRSIUDhL0ppYaTNaoK98AFm8C8rGqX0iJdXy46CnHlRrHh-T9cloVqbxa_0qe8jhBo-ctVeNBVFYtJWfVo0oZmrBJrtWFj43feQ1_I3dGCQPblgEuX2Un9t-dcYwIDjK1DmHizD7J1eAgWRlRH4mnVunj2oE6d0hBBKHrjbGDZNmuO-cSmX-FyIz6BD6YKO1de3aSiKZLV4IS7Jhs4Xv08cayR126Teigqk6PYgTJ6FgB4FsPGPHRxMEbx8sPrQjEfrp9U0fk3Q",
+  "email": "customer1@mail.com",
+  "username": "customer1",
+  "name": "Gianmarco",
+  "surname": "Verdi",
+  "workingOn": null
+}
+```
+
+**Error responses**
+
+- `HTTP status code 404 Not Found` (Username Not Found Exception)
+- `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 401 Unauthorized ` (Wrong password)         
+
+---
+
+
+#### **`DELETE /api/authenticated/auth/logout`**
+
+Close the current session and invalidating the access token.
+
+**Request header:**
+- `Content-Type: application/json`
+- `Authorization: Bearer {token}`
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+
+**Error responses**
+
+- `HTTP status code 404 Not Found` (Profile Not Found Exception)
+- `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 401 Unauthorized` (Invalid Token)
+
+---

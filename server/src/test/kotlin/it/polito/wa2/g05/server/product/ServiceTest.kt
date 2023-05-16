@@ -1,17 +1,17 @@
 package it.polito.wa2.g05.server.product;
 
 import it.polito.wa2.g05.server.products.*
+import it.polito.wa2.g05.server.products.dtos.ProductDTO
+import it.polito.wa2.g05.server.products.dtos.toDTO
+import it.polito.wa2.g05.server.products.entities.Product
+import it.polito.wa2.g05.server.products.repositories.ProductRepository
+import it.polito.wa2.g05.server.products.services.ProductService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer

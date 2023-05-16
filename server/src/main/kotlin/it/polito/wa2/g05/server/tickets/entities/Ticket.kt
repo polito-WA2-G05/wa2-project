@@ -1,8 +1,8 @@
 package it.polito.wa2.g05.server.tickets.entities
 
 import it.polito.wa2.g05.server.EntityBase
-import it.polito.wa2.g05.server.products.Product
-import it.polito.wa2.g05.server.profiles.Profile
+import it.polito.wa2.g05.server.products.entities.Product
+import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.tickets.utils.PriorityLevel
 import it.polito.wa2.g05.server.tickets.utils.TicketStatus
 import jakarta.persistence.*

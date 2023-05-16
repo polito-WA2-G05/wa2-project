@@ -1,8 +1,8 @@
 package it.polito.wa2.g05.server.profile
-import it.polito.wa2.g05.server.profiles.Profile
-import it.polito.wa2.g05.server.profiles.ProfileFormDTO
-import it.polito.wa2.g05.server.profiles.ProfileRepository
-import it.polito.wa2.g05.server.profiles.ProfileService
+import it.polito.wa2.g05.server.profiles.entities.Profile
+import it.polito.wa2.g05.server.profiles.dtos.ProfileFormDTO
+import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
+import it.polito.wa2.g05.server.profiles.services.ProfileService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

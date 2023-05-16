@@ -6,15 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.util.UUID
 
-interface EmployeeRepository : JpaRepository<Employee,Long> {
+interface EmployeeRepository : JpaRepository<Employee,UUID> {
     @Modifying
-    @Query("UPDATE Employee e SET e.isWorkingOn = e.isWorkingOn + 1 WHERE e.id = :id")
-    fun increaseIsWorkingOn(@Param("id") id: Long): Int
+    @Query("UPDATE Employee e SET e.workingOn = e.workingOn + 1 WHERE e.id = :id")
+    fun increaseIsWorkingOn(@Param("id") id: UUID): Int
 
     @Modifying
-    @Query("UPDATE Employee e SET e.isWorkingOn = e.isWorkingOn - 1 WHERE e.id = :id")
-    fun decreaseIsWorkingOn(@Param("id") id: Long): Int
+    @Query("UPDATE Employee e SET e.workingOn = e.workingOn - 1 WHERE e.id = :id")
+    fun decreaseIsWorkingOn(@Param("id") id: UUID): Int
 
     fun findAllBySpecializations(@Param("specializations") specialization: Specialization): List<Employee>
 }

@@ -1,7 +1,7 @@
 package it.polito.wa2.g05.server.product
 
-import it.polito.wa2.g05.server.products.Product
-import it.polito.wa2.g05.server.products.ProductRepository
+import it.polito.wa2.g05.server.products.entities.Product
+import it.polito.wa2.g05.server.products.repositories.ProductRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
