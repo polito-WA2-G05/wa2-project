@@ -1,14 +1,14 @@
 package it.polito.wa2.g05.server.authentication.dtos
 
 import jakarta.validation.constraints.NotBlank
-import org.jetbrains.annotations.*
+import jakarta.validation.constraints.NotNull
 
 data class CredentialsDTO(
     @field:NotNull
     @field:NotBlank
-    val username: String,
+    var username: String?,
 
     @field:NotNull
     @field:NotBlank
-    val password: String
+    var password: String?
 )

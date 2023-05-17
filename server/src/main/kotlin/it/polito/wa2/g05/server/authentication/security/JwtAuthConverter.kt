@@ -47,13 +47,13 @@ class JwtAuthConverter(private var properties: JwtAuthConverterProperties) :
     }
 
     private fun convertStringToJwt(accessTokenString: String): Jwt {
-        val jwtDecoder: JwtDecoder = NimbusJwtDecoder.withJwkSetUri("http://localhost:8080/realms/wa2g05keycloack/protocol/openid-connect/certs").build()
+        val jwtDecoder: JwtDecoder = NimbusJwtDecoder.withJwkSetUri("http://localhost:8081/realms/wa2g05keycloak/protocol/openid-connect/certs").build()
         return jwtDecoder.decode(accessTokenString)
     }
 
     fun getRole(accessToken: String): String {
         val jwt = this.convertStringToJwt(accessToken)
-        val clientAccess = jwt.getClaim<Map<*, *>>("resource_access").get("wa2g05keycloack-client") as Map<*, *>
+        val clientAccess = jwt.getClaim<Map<*, *>>("resource_access").get("wa2g05keycloak-client") as Map<*, *>
         return (clientAccess.get("roles") as List<String>)[0]
     }
 

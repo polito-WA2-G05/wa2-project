@@ -39,13 +39,13 @@ class TicketControl(private val ticketService: TicketService) {
     // /api/expert/tickets/{id}/close
     @PatchMapping("/expert/tickets/{id}/close")
     fun expertCloseTicket(@PathVariable id: Long) : TicketDTO{
-        return ticketService.closeTicket(id)
+        return ticketService.expertCloseTicket(id)
     }
 
     // /api/manager/tickets/{id}/close
     @PatchMapping("/manager/tickets/{id}/close")
     fun managerCloseTicket(@PathVariable id: Long) : TicketDTO{
-        return ticketService.closeTicket(id)
+        return ticketService.managerCloseTicket(id)
     }
 
     // /api/customer/tickets/{id}/reopen
@@ -70,12 +70,12 @@ class TicketControl(private val ticketService: TicketService) {
     // /api/expert/tickets/{id}/resolve
     @PatchMapping("/expert/tickets/{id}/resolve")
     fun expertResolveTicket(@PathVariable id: Long) : TicketDTO{
-        return ticketService.resolveTicket(id)
+        return ticketService.expertResolveTicket(id)
     }
     // /api/manager/tickets/{id}/resolve
     @PatchMapping("/manager/tickets/{id}/resolve")
     fun managerResolveTicket(@PathVariable id: Long) : TicketDTO{
-        return ticketService.resolveTicket(id)
+        return ticketService.managerResolveTicket(id)
     }
 
     // /api/authenticated/tickets/{id}

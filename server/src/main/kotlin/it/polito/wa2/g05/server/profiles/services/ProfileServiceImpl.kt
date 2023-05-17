@@ -24,7 +24,7 @@ class ProfileServiceImpl(private val profileRepository: ProfileRepository) : Pro
         if (profileRepository.findByEmail(data.email!!).isPresent)
                 throw EmailAlreadyExistingException("A profile with ${data.email} as email already exists")
 
-        return profileRepository.save(Profile(UUID.randomUUID(), data.name!!.trim(), data.surname!!.trim(), data.email!!)).toDTO()
+        return profileRepository.save(Profile(data.name!!.trim(), data.surname!!.trim(), data.email!!)).toDTO()
     }
 
     override fun updateProfile(email: String, data: ProfileFormDTO): ProfileDTO {

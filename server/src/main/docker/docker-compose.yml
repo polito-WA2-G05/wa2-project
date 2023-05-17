@@ -1,4 +1,4 @@
-version: '2'
+version: '3.8'
 
 services:
   server:
@@ -9,16 +9,24 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      - database
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/postgres
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
 
-  db:
-    image: 'postgres:13.1-alpine'
+  keycloak:
+    image: 'gcr.io/g5project-385811/keycloak:latest'
+    container_name: g05-keycloak
+    ports:
+      - "8081:8080"
+
+  database:
+    image: 'gcr.io/g5project-385811/database:latest'
     container_name: g05-database
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password

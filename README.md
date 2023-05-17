@@ -69,8 +69,7 @@ JSON object containing username e password.
 
 ```json
 {
-    "id": "1",
-    "name": "user1",
+    "name": "user",
     "surname": "surname1" ,
     "email": "user1@studenti.polito.it"
 }
@@ -95,8 +94,8 @@ JSON object containing name, surname and email.
 
 ```json
 {
-    "name": "user2",
-    "surname": "surname2",
+    "name": "user",
+    "surname": "surname",
     "email": "user2@studenti.polito.it"
 }
 ```
@@ -107,8 +106,7 @@ JSON object containing name, surname and email.
 
 ```json
 {
-    "id": 2,
-    "name": "user2",
+    "name": "user",
     "surname": "surname2" ,
     "email": "user2@studenti.polito.it"
 }
@@ -137,8 +135,8 @@ A JSON object containing the data of the changes to be made.
 
 ```json
 {
-    "name": "user12",
-    "surname": "surname12"
+    "name": "user",
+    "surname": "surname"
 }
 ```
 
@@ -148,9 +146,8 @@ A JSON object containing the data of the changes to be made.
 
 ```json
 {
-    "id": 2,
-    "name": "user12",
-    "surname": "surname12" ,
+    "name": "test",
+    "surname": "surname" ,
     "email": "user2@studenti.polito.it"
 }
 ```
@@ -158,13 +155,12 @@ A JSON object containing the data of the changes to be made.
 **Error responses**
 - `HTTP status code 404 Not Found` (email not found error)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 403 Forbidden` (Forbidden Exception)
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 
 ---
 
-
-### Ticket APIs 
-
-
+### Ticket APIs
 
 #### **`POST /api/customer/tickets`**
 
@@ -172,7 +168,6 @@ Stores a new ticket into the database for a given product
 
 
 **Request header:**
-
 
 - `Content-Type: application/json`
 
@@ -184,10 +179,9 @@ JSON object containing title, description, customerId, productEAN, specializatio
 {
     "title": "Broken phone", 
     "description": "The phone is not turning on since yesterday", 
-    "customerId":1, 
+    "customerId": "79c12344-4092-4661-b0b3-287685340d7b", 
     "productEAN": 4935531465706, 
     "specializationId": 1
-
 }
 ```
 
@@ -202,7 +196,6 @@ JSON object containing title, description, customerId, productEAN, specializatio
     "title": "Broken phone",
     "description": "The phone is not turning on since yesterday",
     "customer": {
-        "id": 1,
         "name": "Test",
         "surname": "Test",
         "email": "test@test.com"
@@ -228,6 +221,8 @@ JSON object containing title, description, customerId, productEAN, specializatio
 - `HTTP status code 404 Not Found` (product not found error)
 - `HTTP status code 404 Not Found` (specialization not found error)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 403 Forbidden` (Forbidden Exception)
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 
 ---
 
@@ -253,7 +248,6 @@ Sets to CANCELLED the status field of a specific ticket associated with the id p
     "title": "Broken phone",
     "description": "The phone is not turning on since yesterday",
     "customer": {
-        "id": 1,
         "name": "Test",
         "surname": "Test",
         "email": "test@test.com"
@@ -277,6 +271,8 @@ Sets to CANCELLED the status field of a specific ticket associated with the id p
 **Error responses**
 - `HTTP status code 404 Not Found` (id not found error)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 403 Forbidden` (Forbidden Exception)
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 
 ---
 
@@ -302,7 +298,6 @@ Sets to CLOSED the status field of a specific ticket associated with the id prov
     "title": "Broken phone",
     "description": "The phone is not turning on since yesterday",
     "customer": {
-        "id": 1,
         "name": "Test",
         "surname": "Test",
         "email": "test@test.com"
@@ -325,7 +320,9 @@ Sets to CLOSED the status field of a specific ticket associated with the id prov
 
 **Error responses**
 - `HTTP status code 404 Not Found` (id not found error)
-- `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 422 Unprocessable Entity` (Validation Exception)- `HTTP status c
+- `HTTP status code 403 Forbidden` (Forbidden Exception)
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 
 ---
 
@@ -351,7 +348,6 @@ Sets to REOPENED the status field of a specific ticket associated with the id pr
     "title": "Broken phone",
     "description": "The phone is not turning on since yesterday",
     "customer": {
-        "id": 1,
         "name": "Test",
         "surname": "Test",
         "email": "test@test.com"
@@ -375,6 +371,8 @@ Sets to REOPENED the status field of a specific ticket associated with the id pr
 **Error responses**
 - `HTTP status code 404 Not Found` (id not found error)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 403 Forbidden` (Forbidden Exception)
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 
 ---
 
@@ -405,43 +403,40 @@ JSON object containing priorityLevel
 
 ```json
 {
-    "id": 1,
-    "status": "IN_PROGRESS",
-    "title": "Keyboard not working",
-    "description": "The keyboard doesn't react to the key pressing",
-    "customer": {
-        "id": 1,
-        "name": "Test",
-        "surname": "Test",
-        "email": "test@test.com"
-    },
-    "expert": {
-        "id": 1,
-        "email": "test@expert.it",
-        "role": "EXPERT",
-        "specializations": [
-            {
-                "id": 1,
-                "name": "COMPUTER"
-            },
-            {
-                "id": 2,
-                "name": "MOBILE"
-            }
-        ]
-    },
-    "priorityLevel": "HIGH",
-    "product": {
-        "ean": "4935531465706",
-        "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-        "brand": "JMT"
-    },
-    "createdDate": "2023-05-02T09:32:18.050+00:00",
-    "closedDate": null,
-    "specialization": {
+  "id": 1,
+  "status": "IN_PROGRESS",
+  "title": "Keyboard not working",
+  "description": "The keyboard doesn't react to the key pressing",
+  "customer": {
+    "name": "Test",
+    "surname": "Test",
+    "email": "test@test.com"
+  },
+  "expert": {
+    "specializations": [
+      {
         "id": 1,
         "name": "COMPUTER"
-    }
+      },
+      {
+        "id": 2,
+        "name": "MOBILE"
+      }
+    ],
+    "workingOn": 1
+  },
+  "priorityLevel": "HIGH",
+  "product": {
+    "ean": "4935531465706",
+    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+    "brand": "JMT"
+  },
+  "createdDate": "2023-05-02T09:32:18.050+00:00",
+  "closedDate": null,
+  "specialization": {
+    "id": 1,
+    "name": "COMPUTER"
+  }
 }
 
 ```
@@ -449,6 +444,8 @@ JSON object containing priorityLevel
 **Error responses**
 - `HTTP status code 404 Not Found` (id not found error)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 403 Forbidden` (Forbidden Exception)
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 
 ---
 
@@ -474,15 +471,11 @@ Sets to OPEN the status field of a specific ticket associated with the id provid
   "title": "Broken phone",
   "description": "The phone is not turning on since yesterday",
   "customer": {
-    "id": 1,
     "name": "Test",
     "surname": "Test",
     "email": "test@test.com"
   },
   "expert": {
-    "id": 1,
-    "email": "test@expert.it",
-    "role": "EXPERT",
     "specializations": [
       {
         "id": 1,
@@ -492,7 +485,8 @@ Sets to OPEN the status field of a specific ticket associated with the id provid
         "id": 2,
         "name": "MOBILE"
       }
-    ]
+    ],
+    "workingOn": 1
   },
   "priorityLevel": "MEDIUM",
   "product": {
@@ -513,6 +507,7 @@ Sets to OPEN the status field of a specific ticket associated with the id provid
 **Error responses**
 - `HTTP status code 404 Not Found` (id not found error)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 403 Forbidden` (Forbidden Exception)
 
 ---
 #### **`PATCH /api/{manager,expert}/tickets/:id/resolve`**
@@ -536,7 +531,6 @@ Sets to RESOLVED the status field of a specific ticket associated with the id pr
     "title": "Broken phone",
     "description": "The phone is not turning on since yesterday",
     "customer": {
-        "id": 1,
         "name": "Test",
         "surname": "Test",
         "email": "test@test.com"
@@ -562,6 +556,8 @@ Sets to RESOLVED the status field of a specific ticket associated with the id pr
 **Error responses**
 - `HTTP status code 404 Not Found` (id not found error)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 403 Forbidden` (Forbidden Exception)
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 
 ---
 
@@ -587,7 +583,6 @@ JSON object containing the info of the ticket.
     "title": "Keyboard not working",
     "description": "The keyboard doesn't react to the key pressing",
     "customer": {
-        "id": 1,
         "name": "Test",
         "surname": "Test",
         "email": "test@test.com"
@@ -611,6 +606,8 @@ JSON object containing the info of the ticket.
 **Error responses**
 
 - `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 403 Forbidden` (Forbidden Exception)
+- `HTTP status code 401 Unauthorized` (Unauthorized Token)
 
 ---
 
@@ -637,7 +634,6 @@ Array of JSON objects containing the information of the tickets associated with 
         "title": "Broken phone",
         "description": "The phone is not turning on since yesterday",
         "customer": {
-            "id": 1,
             "name": "Test",
             "surname": "Test",
             "email": "test@test.com"
@@ -662,7 +658,6 @@ Array of JSON objects containing the information of the tickets associated with 
         "title": "Keyboard not working",
         "description": "The keyboard doesn't react to the key pressing",
         "customer": {
-            "id": 1,
             "name": "Test",
             "surname": "TEST",
             "email": "test@test.com"
@@ -687,10 +682,12 @@ Array of JSON objects containing the information of the tickets associated with 
 **Error responses**
 
 - `HTTP status code 404 Not Found` (Product Not Found Exception)
+- `HTTP status code 403 Forbidden` (Forbidden Exception)
+- `HTTP status code 401 Unauthorized` (Unauthorized Token)
 
+---
 
-
-
+### Authentication APIs
 
 #### **`POST /api/public/auth/login`**
 
@@ -727,12 +724,11 @@ JSON object containing username, password
 
 **Error responses**
 
-- `HTTP status code 404 Not Found` (Username Not Found Exception)
+- `HTTP status code 404 Not Found` (Employee Not Found Exception or Profile Not Found Exception)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
-- `HTTP status code 401 Unauthorized ` (Wrong password)         
+- `HTTP status code 401 Unauthorized ` (Invalid User Credentials Exception)         
 
 ---
-
 
 #### **`DELETE /api/authenticated/auth/logout`**
 
@@ -749,8 +745,5 @@ Close the current session and invalidating the access token.
 
 **Error responses**
 
-- `HTTP status code 404 Not Found` (Profile Not Found Exception)
-- `HTTP status code 422 Unprocessable Entity` (Validation Exception)
 - `HTTP status code 401 Unauthorized` (Invalid Token)
 
----

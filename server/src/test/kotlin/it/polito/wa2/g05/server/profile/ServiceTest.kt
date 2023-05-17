@@ -15,6 +15,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.util.*
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -63,7 +64,6 @@ class ServiceTest {
         val data = ProfileFormDTO("Test1", "Test1", "test1@test.it")
         val profile = profileService.createProfile(data)
 
-        Assertions.assertNotEquals(null, profile.id)
         Assertions.assertEquals(data.name, profile.name)
         Assertions.assertEquals(data.surname, profile.surname)
         Assertions.assertEquals(data.email, profile.email)

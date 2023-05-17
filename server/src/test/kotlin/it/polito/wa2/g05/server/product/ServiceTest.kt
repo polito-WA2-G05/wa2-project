@@ -1,4 +1,4 @@
-package it.polito.wa2.g05.server.product;
+package it.polito.wa2.g05.server.product
 
 import it.polito.wa2.g05.server.products.*
 import it.polito.wa2.g05.server.products.dtos.ProductDTO

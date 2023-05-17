@@ -1,5 +1,6 @@
 package it.polito.wa2.g05.server
 
+import it.polito.wa2.g05.server.authentication.InvalidUserCredentialsException
 import it.polito.wa2.g05.server.products.ProductNotFoundException
 import it.polito.wa2.g05.server.profiles.EmailAlreadyExistingException
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
@@ -7,7 +8,6 @@ import it.polito.wa2.g05.server.tickets.TicketNotFoundException
 import it.polito.wa2.g05.server.tickets.TicketStatusNotValidException
 import it.polito.wa2.g05.server.tickets.EmployeeNotFoundException
 import it.polito.wa2.g05.server.tickets.SpecializationNotFoundException
-
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -68,6 +68,12 @@ class ProblemDetailsHandler: ResponseEntityExceptionHandler() {
     @ExceptionHandler(SpecializationNotFoundException::class)
     fun handleSpecializationNotFound(e: SpecializationNotFoundException) =
         ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message!!)
+
+    // Authentication Exception Handlers
+
+    @ExceptionHandler(InvalidUserCredentialsException::class)
+    fun handleInvalidUserCredentials(e: InvalidUserCredentialsException) =
+        ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.message!!)
 
 }
 

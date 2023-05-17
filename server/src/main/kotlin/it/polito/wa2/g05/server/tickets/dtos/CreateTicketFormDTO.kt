@@ -14,8 +14,9 @@ data class CreateTicketFormDTO(
     @field:NotBlank
     var description: String?,
 
-    @field:Positive
-    var customerId: UUID?,
+    @field:NotNull
+    @field:NotBlank
+    var customerId: String?,
 
     @field:NotNull
     @field:NotBlank

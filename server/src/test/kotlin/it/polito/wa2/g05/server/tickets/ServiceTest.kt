@@ -1,4 +1,4 @@
-package it.polito.wa2.g05.server.tickets;
+package it.polito.wa2.g05.server.tickets
 
 import it.polito.wa2.g05.server.products.entities.Product
 import it.polito.wa2.g05.server.products.ProductNotFoundException
@@ -32,7 +32,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.util.Date
+import java.util.*
 import kotlin.random.Random
 
 @Testcontainers
@@ -78,7 +78,7 @@ class ServiceTest {
     private final val product1 = Product("4935531465706", "TestProduct1", "TestBrand1")
     private final val product2 = Product("4935531468592", "TestProduct2", "TestBrand2")
     private final val specialization = Specialization("Computer")
-    private final val expert = Employee("expert@test.it", "EXPERT", mutableSetOf(specialization), 0)
+    private final val expert = Employee(mutableSetOf(specialization), 0)
 
     protected fun saveTicket(
         status: TicketStatus,
@@ -161,10 +161,10 @@ class ServiceTest {
         val productEans = productRepository.findAll().map { it.ean }
         val specializationIds = specializationRepository.findAll().map { it.getId() }
 
-        var profileThatNotExists: Long = Random.nextLong()
+       var profileThatNotExists: UUID = UUID.randomUUID()
 
         while (profileIds.contains(profileThatNotExists)) {
-            profileThatNotExists = Random.nextLong()
+            profileThatNotExists = UUID.randomUUID()
         }
 
         val data = CreateTicketFormDTO(

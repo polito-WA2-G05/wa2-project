@@ -4,8 +4,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -22,20 +20,22 @@ class CustomAuthenticationEntryPoint : AuthenticationEntryPoint {
         response: HttpServletResponse?,
         authException: AuthenticationException?
     ) {
-        response?.status = HttpStatus.UNAUTHORIZED.value()
+        response?.status = HttpServletResponse.SC_UNAUTHORIZED
         response?.writer?.write("You are not authenticated, please perform login first")
     }
+
 }
 
-class CustomAccessDeniedHanlder : AccessDeniedHandler {
+class CustomAccessDeniedHandler : AccessDeniedHandler {
     override fun handle(
         request: HttpServletRequest?,
         response: HttpServletResponse?,
         accessDeniedException: AccessDeniedException?
     ) {
-        response?.status = HttpStatus.FORBIDDEN.value()
+        response?.status = HttpServletResponse.SC_FORBIDDEN
         response?.writer?.write("You are not allowed to perform this action")
     }
+
 }
 
 @Configuration
@@ -63,7 +63,7 @@ class WebSecurityConfig(val jwtAuthConverter: JwtAuthConverter) {
             .logout().disable()
             .exceptionHandling()
             .authenticationEntryPoint(CustomAuthenticationEntryPoint())
-            .accessDeniedHandler(CustomAccessDeniedHanlder())
+            .accessDeniedHandler(CustomAccessDeniedHandler())
             .and()
             .oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthConverter)
 

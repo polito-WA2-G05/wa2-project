@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Pattern
 
 data class ProfileFormDTO(
-
     @field:NotNull
     @field:NotBlank
     @field:Pattern(regexp = "^\\s*[a-zA-Z]+(?:[\\s-][a-zA-Z][a-z]+)*\\s*\$", message = "Invalid format")
