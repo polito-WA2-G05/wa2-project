@@ -129,7 +129,7 @@ class ServiceTest {
         val data = CreateTicketFormDTO(
             title = "Problema con il prodotto",
             description = "Non riesco ad utilizzare correttamente il prodotto",
-            customerId = profiles[0].getId(),
+            customerId = profiles[0].getId().toString(),
             productEAN = products[0].ean,
             specializationId = specializations[0].getId()
         )
@@ -170,7 +170,7 @@ class ServiceTest {
         val data = CreateTicketFormDTO(
             title = "Problema con il prodotto",
             description = "Non riesco ad utilizzare correttamente il prodotto",
-            customerId = profileThatNotExists,
+            customerId = profileThatNotExists.toString(),
             productEAN = productEans[0],
             specializationId = specializationIds[0]
         )
@@ -195,7 +195,7 @@ class ServiceTest {
         val data = CreateTicketFormDTO(
             title = "Problema con il prodotto",
             description = "Non riesco ad utilizzare correttamente il prodotto",
-            customerId = profileIds[0],
+            customerId = profileIds[0].toString(),
             productEAN = productThatNotExists,
             specializationId = specializationIds[0]
         )
@@ -220,7 +220,7 @@ class ServiceTest {
         val data = CreateTicketFormDTO(
             title = "Problema con il prodotto",
             description = "Non riesco ad utilizzare correttamente il prodotto",
-            customerId = profileIds[0],
+            customerId = profileIds[0].toString(),
             productEAN = productEans[0],
             specializationId = specializationThatNotExists
         )
@@ -315,10 +315,10 @@ class ServiceTest {
     // Close Ticket Tests
 
     @Test
-    fun closeTicketFromOpen() {
+    fun expertCloseTicketFromOpen() {
         val ticket = this.saveTicket(TicketStatus.OPEN)
 
-        val res = ticketService.closeTicket(ticket.getId()!!)
+        val res = ticketService.expertCloseTicket(ticket.getId()!!)
 
         val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
 
@@ -329,10 +329,24 @@ class ServiceTest {
     }
 
     @Test
-    fun closeTicketFromResolved() {
+    fun managerCloseTicketFromOpen() {
+        val ticket = this.saveTicket(TicketStatus.OPEN)
+
+        val res = ticketService.managerCloseTicket(ticket.getId()!!)
+
+        val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
+
+        Assertions.assertEquals(TicketStatus.CLOSED, res.status)
+
+        Assertions.assertEquals(TicketStatus.OPEN, changes[0].fromStatus)
+        Assertions.assertEquals(TicketStatus.CLOSED, changes[0].toStatus)
+    }
+
+    @Test
+    fun expertcloseTicketFromResolved() {
         val ticket = this.saveTicket(TicketStatus.RESOLVED)
 
-        val res = ticketService.closeTicket(ticket.getId()!!)
+        val res = ticketService.expertCloseTicket(ticket.getId()!!)
 
         val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
 
@@ -343,10 +357,24 @@ class ServiceTest {
     }
 
     @Test
-    fun closeTicketFromReopened() {
+    fun managerCloseTicketFromResolved() {
+        val ticket = this.saveTicket(TicketStatus.RESOLVED)
+
+        val res = ticketService.managerCloseTicket(ticket.getId()!!)
+
+        val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
+
+        Assertions.assertEquals(TicketStatus.CLOSED, res.status)
+
+        Assertions.assertEquals(TicketStatus.RESOLVED, changes[0].fromStatus)
+        Assertions.assertEquals(TicketStatus.CLOSED, changes[0].toStatus)
+    }
+
+    @Test
+    fun expertCloseTicketFromReopened() {
         val ticket = this.saveTicket(TicketStatus.REOPENED)
 
-        val res = ticketService.closeTicket(ticket.getId()!!)
+        val res = ticketService.expertCloseTicket(ticket.getId()!!)
 
         val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
 
@@ -357,10 +385,24 @@ class ServiceTest {
     }
 
     @Test
-    fun closeTicketFromInProgress() {
+    fun mCloseTicketFromReopened() {
+        val ticket = this.saveTicket(TicketStatus.REOPENED)
+
+        val res = ticketService.expertCloseTicket(ticket.getId()!!)
+
+        val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
+
+        Assertions.assertEquals(TicketStatus.CLOSED, res.status)
+
+        Assertions.assertEquals(TicketStatus.REOPENED, changes[0].fromStatus)
+        Assertions.assertEquals(TicketStatus.CLOSED, changes[0].toStatus)
+    }
+
+    @Test
+    fun expertCloseTicketFromInProgress() {
         val ticket = this.saveTicket(TicketStatus.IN_PROGRESS, expert, PriorityLevel.HIGH)
 
-        val res = ticketService.closeTicket(ticket.getId()!!)
+        val res = ticketService.expertCloseTicket(ticket.getId()!!)
 
         val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
 
@@ -371,20 +413,20 @@ class ServiceTest {
     }
 
     @Test
-    fun invalidCloseTicketFromCancelled() {
+    fun invalidExpertCloseTicketFromCancelled() {
         val ticket = this.saveTicket(TicketStatus.CANCELLED)
 
         Assertions.assertThrows(TicketStatusNotValidException::class.java, {
-            ticketService.closeTicket(ticket.getId()!!)
+            ticketService.expertCloseTicket(ticket.getId()!!)
         }, "Status can't be set to CLOSED from CANCELLED")
     }
 
     @Test
-    fun invalidCloseTicketFromClosed() {
+    fun invalidExpertCloseTicketFromClosed() {
         val ticket = this.saveTicket(TicketStatus.CLOSED)
 
         Assertions.assertThrows(TicketStatusNotValidException::class.java, {
-            ticketService.closeTicket(ticket.getId()!!)
+            ticketService.expertCloseTicket(ticket.getId()!!)
         }, "Status can't be set to CLOSED from CLOSED")
     }
 
@@ -596,25 +638,25 @@ class ServiceTest {
     // Resolve Ticket Tests
 
     @Test
-    fun resolveTicketFromOpened() {
-        val ticket = this.saveTicket(TicketStatus.OPEN)
+    fun managerResolveTicketFromReopened() {
+        val ticket = this.saveTicket(TicketStatus.REOPENED)
 
-        val res = ticketService.resolveTicket(ticket.getId()!!)
+        val res = ticketService.managerResolveTicket(ticket.getId()!!)
 
         val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
 
         Assertions.assertEquals(TicketStatus.RESOLVED, res.status)
         Assertions.assertEquals(null, res.expert)
 
-        Assertions.assertEquals(TicketStatus.OPEN, changes[0].fromStatus)
+        Assertions.assertEquals(TicketStatus.REOPENED, changes[0].fromStatus)
         Assertions.assertEquals(TicketStatus.RESOLVED, changes[0].toStatus)
     }
 
-    @Test
-    fun resolveTicketFromReopened() {
+   @Test
+    fun expertResolveTicketFromReopened() {
         val ticket = this.saveTicket(TicketStatus.REOPENED)
 
-        val res = ticketService.resolveTicket(ticket.getId()!!)
+        val res = ticketService.managerResolveTicket(ticket.getId()!!)
 
         val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
 
@@ -626,10 +668,10 @@ class ServiceTest {
     }
 
     @Test
-    fun resolveTicketFromInProgress() {
+    fun expertResolveTicketFromInProgress() {
         val ticket = this.saveTicket(TicketStatus.IN_PROGRESS)
 
-        val res = ticketService.resolveTicket(ticket.getId()!!)
+        val res = ticketService.expertResolveTicket(ticket.getId()!!)
 
         val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
 
@@ -640,29 +682,70 @@ class ServiceTest {
     }
 
     @Test
-    fun invalidResolveTicketFromClosed() {
+    fun managerResolveTicketFromInProgress() {
+        val ticket = this.saveTicket(TicketStatus.IN_PROGRESS)
+
+        val res = ticketService.managerResolveTicket(ticket.getId()!!)
+
+        val changes = changeRepository.findAll().filter { it.ticket?.getId() == res.id }
+
+        Assertions.assertEquals(TicketStatus.RESOLVED, res.status)
+
+        Assertions.assertEquals(TicketStatus.IN_PROGRESS, changes[0].fromStatus)
+        Assertions.assertEquals(TicketStatus.RESOLVED, changes[0].toStatus)
+    }
+
+    @Test
+    fun expertInvalidResolveTicketFromClosed() {
         val ticket = this.saveTicket(TicketStatus.CLOSED)
 
         Assertions.assertThrows(TicketStatusNotValidException::class.java, {
-            ticketService.resolveTicket(ticket.getId()!!)
+            ticketService.expertResolveTicket(ticket.getId()!!)
         }, "Status can't be set to RESOLVED from CLOSED")
     }
 
     @Test
-    fun invalidResolveTicketFromCancelled() {
+    fun managerInvalidResolveTicketFromClosed() {
+        val ticket = this.saveTicket(TicketStatus.CLOSED)
+
+        Assertions.assertThrows(TicketStatusNotValidException::class.java, {
+            ticketService.managerResolveTicket(ticket.getId()!!)
+        }, "Status can't be set to RESOLVED from CLOSED")
+    }
+
+    @Test
+    fun expertInvalidResolveTicketFromCancelled() {
         val ticket = this.saveTicket(TicketStatus.CANCELLED)
 
         Assertions.assertThrows(TicketStatusNotValidException::class.java, {
-            ticketService.resolveTicket(ticket.getId()!!)
+            ticketService.expertResolveTicket(ticket.getId()!!)
+        }, "Status can't be set to RESOLVED from CANCELLED")
+    }
+     
+   @Test
+    fun managerInvalidResolveTicketFromCancelled() {
+        val ticket = this.saveTicket(TicketStatus.CANCELLED)
+
+        Assertions.assertThrows(TicketStatusNotValidException::class.java, {
+            ticketService.managerResolveTicket(ticket.getId()!!)
         }, "Status can't be set to RESOLVED from CANCELLED")
     }
 
     @Test
-    fun invalidResolveTicketFromResolved() {
+    fun expertInvalidResolveTicketFromResolved() {
         val ticket = this.saveTicket(TicketStatus.RESOLVED)
 
         Assertions.assertThrows(TicketStatusNotValidException::class.java, {
-            ticketService.resolveTicket(ticket.getId()!!)
+            ticketService.expertResolveTicket(ticket.getId()!!)
+        }, "Status can't be set to RESOLVED from RESOLVED")
+    }
+
+   @Test
+    fun managerInvalidResolveTicketFromResolved() {
+        val ticket = this.saveTicket(TicketStatus.RESOLVED)
+
+        Assertions.assertThrows(TicketStatusNotValidException::class.java, {
+            ticketService.managerResolveTicket(ticket.getId()!!)
         }, "Status can't be set to RESOLVED from RESOLVED")
     }
 

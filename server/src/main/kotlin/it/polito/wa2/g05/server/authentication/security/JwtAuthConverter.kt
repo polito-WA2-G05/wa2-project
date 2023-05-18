@@ -3,6 +3,7 @@ package it.polito.wa2.g05.server.authentication.security
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
@@ -19,7 +20,10 @@ import java.util.stream.Collectors
 import java.util.stream.Stream
 
 @Component
-class JwtAuthConverter(private var properties: JwtAuthConverterProperties) :
+class JwtAuthConverter(
+        @Value("\${keycloak.hostname}") private val keycloakHostname: String,
+        private var properties: JwtAuthConverterProperties
+) :
     Converter<Jwt, AbstractAuthenticationToken> {
     private var jwtGrantedAuthoritiesConverter = JwtGrantedAuthoritiesConverter()
 
@@ -47,7 +51,7 @@ class JwtAuthConverter(private var properties: JwtAuthConverterProperties) :
     }
 
     private fun convertStringToJwt(accessTokenString: String): Jwt {
-        val jwtDecoder: JwtDecoder = NimbusJwtDecoder.withJwkSetUri("http://localhost:8081/realms/wa2g05keycloak/protocol/openid-connect/certs").build()
+        val jwtDecoder: JwtDecoder = NimbusJwtDecoder.withJwkSetUri("http://${keycloakHostname}:8081/realms/wa2g05keycloak/protocol/openid-connect/certs").build()
         return jwtDecoder.decode(accessTokenString)
     }
 

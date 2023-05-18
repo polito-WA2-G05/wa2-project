@@ -141,7 +141,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "Broken iPhone",
             "The phone is not turning on since yesterday",
-            profileIds[0],
+            profileIds[0].toString(),
             productEans[0],
             specializationIds[0]
         )
@@ -170,7 +170,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "Broken iPhone",
             "The phone is not turning on since yesterday",
-            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
             productEans[0],
             specializationIds[0]
         )
@@ -199,7 +199,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "Broken iPhone",
             "The phone is not turning on since yesterday",
-            profileIds[0],
+            profileIds[0].toString(),
             productThatNotExists,
             specializationIds[0]
         )
@@ -229,7 +229,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "Broken iPhone",
             "The phone is not turning on since yesterday",
-            profileIds[0],
+            profileIds[0].toString(),
             productEans[0],
             specializationThatNotExists
         )
@@ -252,7 +252,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "",
             "The phone is not turning on since yesterday",
-            profileIds[0],
+            profileIds[0].toString(),
             productEans[0],
             specializationIds[0]
         )
@@ -275,7 +275,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             null,
             "The phone is not turning on since yesterday",
-            profileIds[0],
+            profileIds[0].toString(),
             productEans[0],
             specializationIds[0]
         )
@@ -298,7 +298,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "Broken iPhone",
             "",
-            profileIds[0],
+            profileIds[0].toString(),
             productEans[0],
             specializationIds[0]
         )
@@ -321,7 +321,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "broken Iphone",
             null,
-            profileIds[0],
+            profileIds[0].toString(),
             productEans[0],
             specializationIds[0]
         )
@@ -343,7 +343,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "Broken iphone",
             "The phone is not turning on since yesterday",
-            profileIds[0],
+            profileIds[0].toString(),
             "",
             specializationIds[0]
         )
@@ -365,7 +365,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "Broken iPhone",
             "The phone is not turning on since yesterday",
-            profileIds[0],
+            profileIds[0].toString(),
             null,
             specializationIds[0]
         )
@@ -387,7 +387,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "Broken iPhone",
             "The phone is not turning on since yesterday",
-            profileIds[0],
+            profileIds[0].toString(),
             productEans[0],
             -37
         )
@@ -410,7 +410,7 @@ class IntegrationTest {
         val data = CreateTicketFormDTO(
             "Broken iphone",
             "The phone is not turning on since yesterday",
-            profileIds[0],
+            profileIds[0].toString(),
             productEans[0],
             null
         )

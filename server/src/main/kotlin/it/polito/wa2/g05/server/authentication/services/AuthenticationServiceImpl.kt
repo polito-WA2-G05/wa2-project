@@ -8,6 +8,8 @@ import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
 import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
 import it.polito.wa2.g05.server.tickets.EmployeeNotFoundException
 import it.polito.wa2.g05.server.tickets.repositories.EmployeeRepository
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
@@ -30,12 +32,13 @@ class CustomErrorHandler: ResponseErrorHandler {
 
 @Service
 class AuthenticationServiceImpl(
+    @Value("\${keycloak.hostname}") private val keycloakHostname: String,
     val employeeRepository: EmployeeRepository,
     val profileRepository: ProfileRepository,
     val jwtAuthConverter: JwtAuthConverter
 ) : AuthenticationService {
     override fun login(credentialDTO: CredentialsDTO): Any {
-        val url = "http://localhost:8081/realms/wa2g05keycloak/protocol/openid-connect/token"
+        val url = "http://${keycloakHostname}:8081/realms/wa2g05keycloak/protocol/openid-connect/token"
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
@@ -86,7 +89,7 @@ class AuthenticationServiceImpl(
     }
 
     override fun logout(token: String): HttpStatusCode {
-        val url = "http://localhost:8081/realms/wa2g05keycloak/protocol/openid-connect/logout"
+        val url = "http://${keycloakHostname}:8081/realms/wa2g05keycloak/protocol/openid-connect/logout"
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
