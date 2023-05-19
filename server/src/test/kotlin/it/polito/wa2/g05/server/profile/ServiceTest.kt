@@ -1,6 +1,9 @@
 package it.polito.wa2.g05.server.profiles
 
-import it.polito.wa2.g05.server.profiles.Profile
+import it.polito.wa2.g05.server.profiles.dtos.ProfileFormDTO
+import it.polito.wa2.g05.server.profiles.entities.Profile
+import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
+import it.polito.wa2.g05.server.profiles.services.ProfileService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -12,6 +15,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.util.*
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -60,7 +64,6 @@ class ServiceTest {
         val data = ProfileFormDTO("Test1", "Test1", "test1@test.it")
         val profile = profileService.createProfile(data)
 
-        Assertions.assertNotEquals(null, profile.id)
         Assertions.assertEquals(data.name, profile.name)
         Assertions.assertEquals(data.surname, profile.surname)
         Assertions.assertEquals(data.email, profile.email)

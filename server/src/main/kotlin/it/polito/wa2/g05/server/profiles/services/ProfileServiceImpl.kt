@@ -1,6 +1,14 @@
-package it.polito.wa2.g05.server.profiles
+package it.polito.wa2.g05.server.profiles.services
 
+import it.polito.wa2.g05.server.profiles.EmailAlreadyExistingException
+import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
+import it.polito.wa2.g05.server.profiles.dtos.ProfileDTO
+import it.polito.wa2.g05.server.profiles.dtos.ProfileFormDTO
+import it.polito.wa2.g05.server.profiles.dtos.toDTO
+import it.polito.wa2.g05.server.profiles.entities.Profile
+import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
 import org.springframework.stereotype.Service
+import java.util.*
 
 @Service
 class ProfileServiceImpl(private val profileRepository: ProfileRepository) : ProfileService {

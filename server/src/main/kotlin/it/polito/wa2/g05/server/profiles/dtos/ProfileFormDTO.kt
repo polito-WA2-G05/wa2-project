@@ -1,4 +1,4 @@
-package it.polito.wa2.g05.server.profiles
+package it.polito.wa2.g05.server.profiles.dtos
 
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Pattern
 
 data class ProfileFormDTO(
-
     @field:NotNull
     @field:NotBlank
     @field:Pattern(regexp = "^\\s*[a-zA-Z]+(?:[\\s-][a-zA-Z][a-z]+)*\\s*\$", message = "Invalid format")

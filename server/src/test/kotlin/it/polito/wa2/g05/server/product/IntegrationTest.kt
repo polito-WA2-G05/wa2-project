@@ -1,7 +1,7 @@
 package it.polito.wa2.g05.server.product
 
-import it.polito.wa2.g05.server.products.Product
-import it.polito.wa2.g05.server.products.ProductRepository
+import it.polito.wa2.g05.server.products.entities.Product
+import it.polito.wa2.g05.server.products.repositories.ProductRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -59,7 +59,7 @@ class IntegrationTest {
         val requestEntity= HttpEntity<Unit>(headers)
 
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/products",
+            "http://localhost:$port/api/public/products",
             HttpMethod.GET,
             requestEntity,
             List::class.java
@@ -74,7 +74,7 @@ class IntegrationTest {
         val requestEntity= HttpEntity<Unit>(headers)
 
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/products/${product.ean}",
+            "http://localhost:$port/api/public/products/${product.ean}",
             HttpMethod.GET,
             requestEntity,
             Product::class.java
@@ -89,7 +89,7 @@ class IntegrationTest {
         val requestEntity= HttpEntity<Unit>(headers)
 
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/products/fakeEan",
+            "http://localhost:$port/api/public/products/fakeEan",
             HttpMethod.GET,
             requestEntity,
             Product::class.java

@@ -1,9 +1,9 @@
 package it.polito.wa2.g05.server.tickets.services
 
 import it.polito.wa2.g05.server.products.ProductNotFoundException
-import it.polito.wa2.g05.server.products.ProductRepository
+import it.polito.wa2.g05.server.products.repositories.ProductRepository
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
-import it.polito.wa2.g05.server.profiles.ProfileRepository
+import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
 import it.polito.wa2.g05.server.tickets.TicketNotFoundException
 import it.polito.wa2.g05.server.tickets.SpecializationNotFoundException
 import it.polito.wa2.g05.server.tickets.TicketStatusNotValidException
@@ -35,7 +35,7 @@ class TicketServiceImpl(
 ) : TicketService {
 
     override fun createTicket(data: CreateTicketFormDTO): TicketDTO {
-        val customer = profileRepository.findById(data.customerId!!)
+        val customer = profileRepository.findById(UUID.fromString(data.customerId!!))
         if (customer.isEmpty)
             throw ProfileNotFoundException("Profile ${data.customerId} not found")
 
@@ -95,13 +95,30 @@ class TicketServiceImpl(
     }
 
     @Transactional
-    override fun closeTicket(id: Long): TicketDTO {
+    override fun expertCloseTicket(id: Long): TicketDTO {
         if (!ticketRepository.existsById(id))
             throw TicketNotFoundException("Ticked $id not found")
 
         val currentStatus = ticketRepository.getStatus(id)
 
-        if (currentStatus == TicketStatus.CLOSED || currentStatus == TicketStatus.CANCELLED)
+        if (currentStatus != TicketStatus.IN_PROGRESS)
+            throw TicketStatusNotValidException("Status can't be set to CLOSE from $currentStatus")
+
+        ticketRepository.updateStatus(id, TicketStatus.CLOSED, Date())
+        val ticket = ticketRepository.findById(id).get()
+        changeRepository.save(Change(currentStatus, TicketStatus.CLOSED, Date(), ticket, ticket.expert))
+
+        return ticket.toDTO()
+    }
+
+    @Transactional
+    override fun managerCloseTicket(id: Long): TicketDTO {
+        if (!ticketRepository.existsById(id))
+            throw TicketNotFoundException("Ticked $id not found")
+
+        val currentStatus = ticketRepository.getStatus(id)
+
+        if (currentStatus == TicketStatus.CLOSED || currentStatus == TicketStatus.CANCELLED || currentStatus == TicketStatus.IN_PROGRESS)
             throw TicketStatusNotValidException("Status can't be set to CLOSE from $currentStatus")
 
         ticketRepository.updateStatus(id, TicketStatus.CLOSED, Date())
@@ -152,9 +169,9 @@ class TicketServiceImpl(
             var lowestIsWorkingOn = Int.MAX_VALUE
 
             for (employee in employees) {
-                if (employee.isWorkingOn < lowestIsWorkingOn) {
+                if (employee.workingOn < lowestIsWorkingOn) {
                     selectedEmployee = employee
-                    lowestIsWorkingOn = employee.isWorkingOn
+                    lowestIsWorkingOn = employee.workingOn
                 }
             }
 
@@ -190,14 +207,14 @@ class TicketServiceImpl(
     }
 
     @Transactional
-    override fun resolveTicket(id: Long): TicketDTO {
+    override fun managerResolveTicket(id: Long): TicketDTO {
 
         if (!ticketRepository.existsById(id))
             throw TicketNotFoundException("Ticked $id not found")
 
         val currentStatus = ticketRepository.getStatus(id)
 
-        if (currentStatus == TicketStatus.OPEN || currentStatus == TicketStatus.REOPENED || currentStatus == TicketStatus.IN_PROGRESS) {
+        if (currentStatus == TicketStatus.OPEN || currentStatus == TicketStatus.REOPENED) {
             ticketRepository.updateStatus(id, TicketStatus.RESOLVED, Date())
             val ticket = ticketRepository.findById(id).get()
 
@@ -214,6 +231,32 @@ class TicketServiceImpl(
             return ticket.toDTO()
         }
         throw TicketStatusNotValidException("Status can't be set to RESOLVED from $currentStatus")
+    }
+
+    @Transactional
+    override fun expertResolveTicket(id: Long): TicketDTO {
+        if (!ticketRepository.existsById(id))
+            throw TicketNotFoundException("Ticked $id not found")
+
+        val currentStatus = ticketRepository.getStatus(id)
+
+        if (currentStatus != TicketStatus.IN_PROGRESS)
+            throw TicketStatusNotValidException("Status can't be set to RESOLVED from $currentStatus")
+
+        ticketRepository.updateStatus(id, TicketStatus.RESOLVED, Date())
+        val ticket = ticketRepository.findById(id).get()
+
+        this.removeExpert(ticket)
+        changeRepository.save(
+                Change(
+                    currentStatus,
+                    TicketStatus.RESOLVED,
+                    Date(),
+                    ticket,
+                    ticket.expert
+                )
+        )
+        return ticket.toDTO()
     }
 
     override fun getTicket(id: Long): TicketDTO {

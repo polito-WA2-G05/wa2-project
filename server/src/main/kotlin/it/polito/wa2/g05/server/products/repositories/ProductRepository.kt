@@ -1,5 +1,6 @@
-package it.polito.wa2.g05.server.products
+package it.polito.wa2.g05.server.products.repositories
 
+import it.polito.wa2.g05.server.products.entities.Product
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository

@@ -1,4 +1,4 @@
-package it.polito.wa2.g05.server.products
+package it.polito.wa2.g05.server.products.entities
 
 import it.polito.wa2.g05.server.EntityBase
 import jakarta.persistence.Entity

@@ -1,5 +1,9 @@
-package it.polito.wa2.g05.server.products
+package it.polito.wa2.g05.server.products.services
 
+import it.polito.wa2.g05.server.products.ProductNotFoundException
+import it.polito.wa2.g05.server.products.dtos.ProductDTO
+import it.polito.wa2.g05.server.products.dtos.toDTO
+import it.polito.wa2.g05.server.products.repositories.ProductRepository
 import org.springframework.stereotype.Service
 
 @Service

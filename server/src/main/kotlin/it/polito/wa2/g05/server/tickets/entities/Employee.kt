@@ -1,6 +1,6 @@
 package it.polito.wa2.g05.server.tickets.entities
 
-import it.polito.wa2.g05.server.EntityBase
+import it.polito.wa2.g05.server.EntityBaseUUID
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
@@ -11,9 +11,6 @@ import jakarta.persistence.Table
 @Entity
 @Table(name="employees")
 class Employee (
-    var email : String = "",
-    var role : String = "",
-
     @ManyToMany
     @JoinTable(
         name = "expert_specialization",
@@ -21,7 +18,7 @@ class Employee (
         inverseJoinColumns = [JoinColumn(name="specs_id")])
     var specializations: MutableSet<Specialization> = mutableSetOf(),
 
-    @Column(name = "is_working_on")
-    var isWorkingOn : Int = 0,
-): EntityBase<Long>()
+    @Column(name = "working_on")
+    var workingOn : Int = 0,
+): EntityBaseUUID()
 

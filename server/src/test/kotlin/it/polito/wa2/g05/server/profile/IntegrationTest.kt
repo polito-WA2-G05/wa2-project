@@ -1,8 +1,8 @@
 package it.polito.wa2.g05.server.profile
-import it.polito.wa2.g05.server.profiles.Profile
-import it.polito.wa2.g05.server.profiles.ProfileFormDTO
-import it.polito.wa2.g05.server.profiles.ProfileRepository
-import it.polito.wa2.g05.server.profiles.ProfileService
+import it.polito.wa2.g05.server.profiles.entities.Profile
+import it.polito.wa2.g05.server.profiles.dtos.ProfileFormDTO
+import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
+import it.polito.wa2.g05.server.profiles.services.ProfileService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,6 +20,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.util.*
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -53,7 +54,7 @@ class IntegrationTest {
     lateinit var profileService: ProfileService
 
     private final val profile = Profile("Test_Nome", "Test_Cognome", "Test@test.it")
-    private final val profile1 = Profile("Test_Name1", "Test_Surname1", "Test1@test.it")
+    private final val profile1 = Profile( "Test_Name1", "Test_Surname1", "Test1@test.it")
 
     @BeforeEach
     fun insertData() {
@@ -67,7 +68,7 @@ class IntegrationTest {
         val headers = HttpHeaders()
         val requestEntity= HttpEntity<Unit>(headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles/${profile.email}",
+            "http://localhost:$port/api/public/profiles/${profile.email}",
             HttpMethod.GET,
             requestEntity,
             Any::class.java)
@@ -81,7 +82,7 @@ class IntegrationTest {
         val headers = HttpHeaders()
         val requestEntity= HttpEntity<Unit>(headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles/${email}",
+            "http://localhost:$port/api/public/profiles/${email}",
             HttpMethod.GET,
             requestEntity,
             Any::class.java)
@@ -98,7 +99,7 @@ class IntegrationTest {
             "test2@test.it")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles",
+            "http://localhost:$port/api/public/profiles",
             HttpMethod.POST,
             requestEntity,
             Any::class.java)
@@ -115,7 +116,7 @@ class IntegrationTest {
             "test2@test.it")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles",
+            "http://localhost:$port/api/public/profiles",
             HttpMethod.POST,
             requestEntity,
             Any::class.java)
@@ -132,7 +133,7 @@ class IntegrationTest {
             "test2@test.it")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles",
+            "http://localhost:$port/api/public/profiles",
             HttpMethod.POST,
             requestEntity,
             Any::class.java)
@@ -149,7 +150,7 @@ class IntegrationTest {
             "")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles",
+            "http://localhost:$port/api/public/profiles",
             HttpMethod.POST,
             requestEntity,
             Any::class.java)
@@ -166,7 +167,7 @@ class IntegrationTest {
             "test")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles",
+            "http://localhost:$port/api/public/profiles",
             HttpMethod.POST,
             requestEntity,
             Any::class.java)
@@ -182,7 +183,7 @@ class IntegrationTest {
             null)
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles",
+            "http://localhost:$port/api/public/profiles",
             HttpMethod.POST,
             requestEntity,
             Any::class.java)
@@ -199,7 +200,7 @@ class IntegrationTest {
             "testtttttt@test.it")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles",
+            "http://localhost:$port/api/public/profiles",
             HttpMethod.POST, requestEntity,
             Any::class.java)
 
@@ -215,7 +216,7 @@ class IntegrationTest {
             "Test2@test.it")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles/${profile.email}",
+            "http://localhost:$port/api/customer/profiles/${profile.email}",
             HttpMethod.PUT,
             requestEntity,
             Any::class.java)
@@ -233,7 +234,7 @@ class IntegrationTest {
             "Test2@test.it")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles/${email}",
+            "http://localhost:$port/api/customer/profiles/${email}",
             HttpMethod.PUT,
             requestEntity,
             Any::class.java)
@@ -250,7 +251,7 @@ class IntegrationTest {
             "Test2@test.it")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles/${profile.email}",
+            "http://localhost:$port/api/customer/profiles/${profile.email}",
             HttpMethod.PUT,
             requestEntity,
             Any::class.java)
@@ -267,7 +268,7 @@ class IntegrationTest {
             "Test2@test.it")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles/${profile.email}",
+            "http://localhost:$port/api/customer/profiles/${profile.email}",
             HttpMethod.PUT,
             requestEntity,
             Any::class.java)
@@ -284,7 +285,7 @@ class IntegrationTest {
             "Test2@test.it")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles/${profile.email}",
+            "http://localhost:$port/api/customer/profiles/${profile.email}",
             HttpMethod.PUT,
             requestEntity,
             Any::class.java)
@@ -301,7 +302,7 @@ class IntegrationTest {
             "")
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles/${profile.email}",
+            "http://localhost:$port/api/customer/profiles/${profile.email}",
             HttpMethod.PUT,
             requestEntity,
             Any::class.java)
@@ -318,7 +319,7 @@ class IntegrationTest {
             null)
         val requestEntity = HttpEntity<ProfileFormDTO>(data, headers)
         val response = restTemplate.exchange(
-            "http://localhost:$port/api/profiles/${profile.email}",
+            "http://localhost:$port/api/customer/profiles/${profile.email}",
             HttpMethod.PUT,
             requestEntity,
             Any::class.java)

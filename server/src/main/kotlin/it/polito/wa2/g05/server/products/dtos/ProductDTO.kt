@@ -1,4 +1,6 @@
-package it.polito.wa2.g05.server.products
+package it.polito.wa2.g05.server.products.dtos
+
+import it.polito.wa2.g05.server.products.entities.Product
 
 data class ProductDTO(
     val ean: String,

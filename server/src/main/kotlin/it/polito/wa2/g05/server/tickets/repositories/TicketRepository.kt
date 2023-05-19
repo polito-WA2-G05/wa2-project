@@ -1,6 +1,6 @@
 package it.polito.wa2.g05.server.tickets.repositories
 
-import it.polito.wa2.g05.server.products.Product
+import it.polito.wa2.g05.server.products.entities.Product
 import it.polito.wa2.g05.server.tickets.entities.Employee
 import it.polito.wa2.g05.server.tickets.entities.Specialization
 import it.polito.wa2.g05.server.tickets.entities.Ticket
