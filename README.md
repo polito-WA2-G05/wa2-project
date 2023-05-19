@@ -1,5 +1,39 @@
 # Documentation
 
+## Docker
+
+In order to make easy testing the application, a `docker-compose.yml` file has been created in `/server/src/main/docker` directory 
+and it includes our server application, our postgres database and keycloak images, already configured and ready-to-use.
+
+You can move to `/server/src/main/docker` directory and execute the following command on terminal to pull our services images:
+
+```bash
+docker-compose pull
+```
+
+Then you will be able to run the following command to start services:
+
+```bash
+docker-compose up
+```
+
+Note that:
+- server application runs on `http://localhost:8080`
+- keycloak runs on `http://localhost:8081`
+- postgres database runs on `http://localhost:5432`
+
+### User Credentials
+
+If you have pulled our images, you will be able to use the following user credentials to perform login:
+
+| username  | password | role     |
+|-----------|----------|----------|
+| customer1 | customer | Customer |
+| customer2 | customer | Customer |
+| expert1   | expert   | Expert   |
+| expert2   | expert   | Expert   |
+| manager1  | manager  | Manager  |
+
 ## Server APIs
 
 ### Products APIs
