@@ -10,5 +10,4 @@ import org.springframework.validation.annotation.Validated
 class JwtAuthConverterProperties {
     lateinit var resourceId: String
     lateinit var principalAttribute: String
-    lateinit var secretKey: String
 }

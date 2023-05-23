@@ -1,5 +1,6 @@
 package it.polito.wa2.g05.server.authentication.security
 
+import it.polito.wa2.g05.server.authentication.utils.Role
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
@@ -35,16 +36,15 @@ class CustomAccessDeniedHandler : AccessDeniedHandler {
         response?.status = HttpServletResponse.SC_FORBIDDEN
         response?.writer?.write("You are not allowed to perform this action")
     }
-
 }
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 class WebSecurityConfig(val jwtAuthConverter: JwtAuthConverter) {
-    private var CUSTOMER: String = "Customer"
-    private var EXPERT: String = "Expert"
-    private var MANAGER: String = "Manager"
+    private var CUSTOMER: String = Role.CUSTOMER.clientRole
+    private var EXPERT: String = Role.EXPERT.clientRole
+    private var MANAGER: String = Role.MANAGER.clientRole
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {

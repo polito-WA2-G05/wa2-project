@@ -27,14 +27,6 @@ class ProfileController(private val profileService: ProfileService){
         return profileService.getProfile(email)
     }
 
-    // /api/public/profiles
-    @PostMapping("/public/profiles")
-    @ResponseStatus(HttpStatus.CREATED)
-    fun createProfile(@RequestBody @Valid data: ProfileFormDTO, br: BindingResult) : ProfileDTO {
-        if (br.hasErrors()) throw ValidationException(br.fieldErrors, "Validation errors")
-        return profileService.createProfile(data)
-    }
-
     // /api/customer/profiles/{email}
     @PutMapping("/customer/profiles/{email}")
     fun updateProfile(@PathVariable email: String, @RequestBody @Valid data: ProfileFormDTO, br: BindingResult) : ProfileDTO {

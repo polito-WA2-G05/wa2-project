@@ -1,15 +1,23 @@
 package it.polito.wa2.g05.server.authentication.services
 
 import it.polito.wa2.g05.server.authentication.InvalidUserCredentialsException
-import it.polito.wa2.g05.server.authentication.dtos.CredentialsDTO
-import it.polito.wa2.g05.server.authentication.dtos.UserDTO
+import it.polito.wa2.g05.server.authentication.dtos.*
 import it.polito.wa2.g05.server.authentication.security.JwtAuthConverter
+import it.polito.wa2.g05.server.authentication.utils.Role
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
+import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
 import it.polito.wa2.g05.server.tickets.EmployeeNotFoundException
+import it.polito.wa2.g05.server.tickets.SpecializationNotFoundException
+import it.polito.wa2.g05.server.tickets.entities.Employee
 import it.polito.wa2.g05.server.tickets.repositories.EmployeeRepository
+import it.polito.wa2.g05.server.tickets.repositories.SpecializationRepository
+import org.keycloak.admin.client.CreatedResponseUtil
+import org.keycloak.admin.client.Keycloak
+import org.keycloak.representations.idm.CredentialRepresentation
+import org.keycloak.representations.idm.RoleRepresentation
+import org.keycloak.representations.idm.UserRepresentation
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
@@ -17,8 +25,9 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.*
 import org.springframework.http.client.ClientHttpResponse
 import org.springframework.web.client.ResponseErrorHandler
+import java.util.*
 
-class CustomErrorHandler: ResponseErrorHandler {
+class CustomErrorHandler : ResponseErrorHandler {
     override fun hasError(response: ClientHttpResponse): Boolean {
         return response.statusCode.isError
     }
@@ -27,23 +36,107 @@ class CustomErrorHandler: ResponseErrorHandler {
         if (response.statusCode == HttpStatus.UNAUTHORIZED)
             throw InvalidUserCredentialsException("Invalid credentials")
     }
-
 }
 
 @Service
 class AuthenticationServiceImpl(
-    @Value("\${keycloak.hostname}") private val keycloakHostname: String,
-    val employeeRepository: EmployeeRepository,
-    val profileRepository: ProfileRepository,
-    val jwtAuthConverter: JwtAuthConverter
+    @Value("\${keycloak.realm}")
+    private val realm: String,
+
+    @Value("\${keycloak.resource}")
+    private val resource: String,
+
+    @Value("\${keycloak.credentials.secret}")
+    private val secreteKey: String,
+
+    @Value("\${keycloak.hostname}")
+    private val keycloakHostname: String,
+
+    private val keycloak: Keycloak,
+    private val employeeRepository: EmployeeRepository,
+    private val profileRepository: ProfileRepository,
+    private val specializationRepository: SpecializationRepository,
+    private val jwtAuthConverter: JwtAuthConverter
 ) : AuthenticationService {
-    override fun login(credentialDTO: CredentialsDTO): Any {
+
+    private fun preparePasswordRepresentation(password: String): CredentialRepresentation {
+        val cR = CredentialRepresentation()
+        cR.isTemporary = false
+        cR.type = CredentialRepresentation.PASSWORD
+        cR.value = password
+
+        return cR
+    }
+
+    private fun prepareUserRepresentation(details: UserDetailsDTO , cR: CredentialRepresentation): UserRepresentation {
+        val user = UserRepresentation()
+        user.username = details.username
+        user.credentials = listOf(cR)
+        user.isEnabled = true
+        user.email = details.email
+        user.isEmailVerified = true
+
+        return user
+    }
+
+    private fun findRoleByName(roleName: String): RoleRepresentation =
+        keycloak.realm(realm).roles().get(roleName).toRepresentation()
+
+    private fun assignRole(userId: String, roleRepresentation: RoleRepresentation) {
+        keycloak
+            .realm(realm)
+            .users()
+            .get(userId)
+            .roles()
+            .realmLevel()
+            .add(listOf(roleRepresentation))
+    }
+
+    override fun signup(data: SignupProfileDTO) {
+        val password = preparePasswordRepresentation(data.details!!.password!!)
+        val user = prepareUserRepresentation(data.details, password)
+
+        val response = keycloak.realm(realm).users().create(user)
+
+        val userId = CreatedResponseUtil.getCreatedId(response)
+        val role = this.findRoleByName(Role.CUSTOMER.realmRole)
+        this.assignRole(userId, role)
+
+        val profile = Profile(UUID.fromString(userId), data.name!!, data.surname!!, data.details!!.email!!)
+
+        profileRepository.save(profile)
+    }
+
+    override fun createExpert(data: CreateExpertDTO) {
+        val password = preparePasswordRepresentation(data.details!!.password!!)
+        val user = prepareUserRepresentation(data.details, password)
+        val response = keycloak.realm(realm).users().create(user)
+        val userId = CreatedResponseUtil.getCreatedId(response)
+        val role = this.findRoleByName(Role.EXPERT.realmRole)
+        this.assignRole(userId, role)
+
+        val specializations = data.specializations.map {
+            specializationRepository.findById(it)
+                .orElseThrow { SpecializationNotFoundException("Specialization with id $it not found") }
+        }.toMutableSet()
+
+        println(specializations.toString())
+
+        val employee = Employee(UUID.fromString(userId), specializations)
+
+        employeeRepository.save(employee)
+    }
+
+
+
+    override fun login(credential: CredentialsDTO): Any {
         val url = "http://${keycloakHostname}:8081/realms/wa2g05keycloak/protocol/openid-connect/token"
 
         val headers = HttpHeaders()
+        headers.setBasicAuth(resource, secreteKey)
         headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
         val request = HttpEntity(
-            "grant_type=password&client_id=wa2g05keycloak-client&username=${credentialDTO.username}&password=${credentialDTO.password}",
+            "grant_type=password&client_id=wa2g05keycloak-client&username=${credential.username}&password=${credential.password}",
             headers
         )
 
@@ -61,29 +154,20 @@ class AuthenticationServiceImpl(
             val role = jwtAuthConverter.getRole(accessToken)
             val uuid = jwtAuthConverter.getUUID(accessToken)
 
-            if (role == "Expert" || role == "Manager") {
-                val employee = employeeRepository.findById(uuid).orElseThrow { EmployeeNotFoundException("$role $uuid is not found") }
+            val isEmployee= role == "Expert" || role == "Manager"
 
-                return UserDTO(
-                        accessToken,
-                        jwtAuthConverter.getEmail(accessToken),
-                        jwtAuthConverter.getUsername(accessToken),
-                        null,
-                        null,
-                        if (role == "Expert") employee.workingOn else null
-                )
-            } else {
-                val profile = profileRepository.findById(uuid).orElseThrow { ProfileNotFoundException("Customer $uuid is not found") }
-                return UserDTO(
-                        accessToken,
-                        jwtAuthConverter.getEmail(accessToken),
-                        jwtAuthConverter.getUsername(accessToken),
-                        profile.name,
-                        profile.surname,
-                        null
-                )
-            }
-        } catch (e: InvalidUserCredentialsException){
+            val user = if(isEmployee) employeeRepository else profileRepository
+
+            val exception = if(isEmployee) EmployeeNotFoundException("$role $uuid is not found")
+                else ProfileNotFoundException("Customer $uuid is not found")
+
+            user.findById(uuid).orElseThrow { exception }
+            return UserDTO(
+                accessToken,
+                jwtAuthConverter.getEmail(accessToken),
+                jwtAuthConverter.getUsername(accessToken),
+            )
+        } catch (e: InvalidUserCredentialsException) {
             throw e
         }
     }

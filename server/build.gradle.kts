@@ -36,6 +36,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.jsonwebtoken:jjwt-api:0.11.2")
     implementation ("com.auth0:java-jwt:3.18.2")
+    implementation("org.keycloak:keycloak-spring-boot-starter:21.0.1")
+    implementation("org.keycloak:keycloak-admin-client:21.0.1")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.2")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.2")

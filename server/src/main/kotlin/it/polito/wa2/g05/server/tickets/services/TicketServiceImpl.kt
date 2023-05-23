@@ -68,7 +68,7 @@ class TicketServiceImpl(
 
     protected fun removeExpert(ticket: Ticket) {
         if (ticket.expert != null) {
-            employeeRepository.decreaseIsWorkingOn(ticket.expert!!.getId()!!)
+            employeeRepository.decreaseIsWorkingOn(ticket.expert!!.id!!)
             ticketRepository.removeExpert(ticket.getId()!!)
         }
     }
@@ -176,7 +176,7 @@ class TicketServiceImpl(
             }
 
             ticketRepository.startTicket(id, PriorityLevel.values()[data.priorityLevel!!], selectedEmployee)
-            employeeRepository.increaseIsWorkingOn(selectedEmployee.getId()!!)
+            employeeRepository.increaseIsWorkingOn(selectedEmployee.id!!)
 
             val ticket = ticketRepository.findById(id).get()
 

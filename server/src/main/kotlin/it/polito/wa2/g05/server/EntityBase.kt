@@ -45,6 +45,10 @@ abstract class EntityBaseUUID {
 
     fun getId(): UUID? = id
 
+    fun setId(uuid: UUID) {
+        this.id = uuid
+    }
+
     override fun equals(other: Any?): Boolean {
         if(other == null) return false
         if(other === this) return true
