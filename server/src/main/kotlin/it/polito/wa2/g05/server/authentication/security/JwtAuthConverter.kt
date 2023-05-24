@@ -1,5 +1,6 @@
 package it.polito.wa2.g05.server.authentication.security
 
+import org.keycloak.admin.client.Keycloak
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.AbstractAuthenticationToken
@@ -19,36 +20,38 @@ import java.util.stream.Stream
 @Component
 class JwtAuthConverter(
         @Value("\${keycloak.hostname}") private val keycloakHostname: String,
-        private var properties: JwtAuthConverterProperties
+        @Value("\${keycloak.realm}")
+        private val realm: String,
+
+        @Value("\${keycloak.resource}")
+        private val resource: String,
+        private var properties: JwtAuthConverterProperties,
+        private val keycloak: Keycloak
 ) :
     Converter<Jwt, AbstractAuthenticationToken> {
     private var jwtGrantedAuthoritiesConverter = JwtGrantedAuthoritiesConverter()
 
-    override fun convert(jwt: Jwt): AbstractAuthenticationToken {
-        val authorities: Collection<GrantedAuthority> = Stream.concat(
-            jwtGrantedAuthoritiesConverter.convert(jwt)?.stream(),
-            this.extractResourceRoles(jwt).stream()
-        ).collect(Collectors.toSet())
-        return JwtAuthenticationToken(jwt, authorities, this.getPrincipalClaimName(jwt))
-    }
+    override fun convert(source: Jwt): AbstractAuthenticationToken? {
+        val clientId = keycloak
+            .realm(realm)
+            .clients()
+            .findByClientId(resource)
+            .first().id
 
-    private fun getPrincipalClaimName(jwt: Jwt): String {
-        var claimName: String = JwtClaimNames.SUB
-        claimName = properties.principalAttribute
-        return jwt.getClaim(claimName)
-    }
+        val authorities = keycloak
+            .realm(realm)
+            .users()
+            .get(source.subject)
+            .roles()
+            .clientLevel(clientId)
+            .listAll()
+            .map { SimpleGrantedAuthority("ROLE_$it") }
 
-    private fun extractResourceRoles(jwt: Jwt): Collection<GrantedAuthority> {
-        val resourceAccess = jwt.getClaim<Map<String, Any>>("resource_access")
-        val resource = resourceAccess?.get(properties.resourceId) as? Map<*, *>
-        val resourceRoles = resource?.get("roles") as? Collection<*>
-
-        return resourceRoles?.stream()?.map { role -> SimpleGrantedAuthority("ROLE_$role") }
-            ?.collect(Collectors.toSet()) ?: emptySet()
+        return JwtAuthenticationToken(source, authorities, source.getClaim(properties.principalAttribute ?: source.subject))
     }
 
     private fun convertStringToJwt(accessTokenString: String): Jwt {
-        val jwtDecoder: JwtDecoder = NimbusJwtDecoder.withJwkSetUri("http://${keycloakHostname}:8081/realms/wa2g05keycloak/protocol/openid-connect/certs").build()
+        val jwtDecoder: JwtDecoder = NimbusJwtDecoder.withJwkSetUri("http://localhost:8081/realms/wa2g05keycloak/protocol/openid-connect/certs").build()
         return jwtDecoder.decode(accessTokenString)
     }
 

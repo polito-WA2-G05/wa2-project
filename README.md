@@ -723,7 +723,7 @@ Array of JSON objects containing the information of the tickets associated with 
 
 ### Authentication APIs
 
-#### **`POST /api/public/auth/login`**
+#### **`POST /api/anonymous/auth/login`**
 
 Perform login
 
@@ -758,9 +758,10 @@ JSON object containing username, password
 
 **Error responses**
 
+- `HTTP status code 401 Unauthorized ` (Invalid User Credentials Exception)     
+- `HTTP status code 403 Forbidden ` (User already logged in)
 - `HTTP status code 404 Not Found` (Employee Not Found Exception or Profile Not Found Exception)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
-- `HTTP status code 401 Unauthorized ` (Invalid User Credentials Exception)         
 
 ---
 
@@ -781,3 +782,87 @@ Close the current session and invalidating the access token.
 
 - `HTTP status code 401 Unauthorized` (Invalid Token)
 
+
+#### **`POST /api/anonymous/auth/signup`**
+
+Register a new customer profile 
+
+**Request header:**
+- `Content-Type: application/json`
+
+**Request body:**
+
+JSON object containing name, surname, an object "details" with password, email and username.
+
+```json
+{
+    "name": "Mario",
+    "surname": "Rossi",
+    "details" : {
+        "username": "mariorossi",
+                "email": "mariorossi@mail.com",
+      "password": "Password1?"
+      }
+}
+```
+
+**Response body**
+
+`HTTP status code 201 CREATED`
+
+```json
+{
+  "username" : "mariorossi",
+  "email": "mariorossi@mail.com"
+}
+```
+
+**Error responses**
+
+- `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+- `HTTP status code 409 Conflict ` (Username or Email already exists)
+- `HTTP status code 403 Forbidden ` (User already logged in)
+
+---
+
+#### **`POST /api/manager/auth/createExpert`**
+
+Register a new expert profile
+
+**Request header:**
+- `Content-Type: application/json`
+
+**Request body:**
+
+JSON object containing an object "details" with password, email and username and a set of specialization ids
+
+```json
+{
+    "details" : {
+        "username": "giuliobianchi",
+                "email": "giuliobianchi@mail.com",
+      "password": "Password1?"
+      },
+  "specializations":[1,2]
+}
+```
+
+**Response body**
+
+`HTTP status code 201 CREATED`
+
+```json
+{
+  "username" : "giuliobianchi",
+  "email": "giuliobianchi@mail.com"
+}
+```
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized ` (user not authenticated)
+- `HTTP status code 403 Forbidden ` (Role not allowed)
+- `HTTP status code 404 Forbidden ` (Specialization not found)
+- `HTTP status code 409 Conflict ` (Username or Email already exists)
+- `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+---

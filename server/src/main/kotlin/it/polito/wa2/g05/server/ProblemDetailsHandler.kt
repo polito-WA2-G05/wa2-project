@@ -1,13 +1,11 @@
 package it.polito.wa2.g05.server
 
 import it.polito.wa2.g05.server.authentication.InvalidUserCredentialsException
+import it.polito.wa2.g05.server.authentication.UsernameOrEmailAlreadyExistsException
 import it.polito.wa2.g05.server.products.ProductNotFoundException
 import it.polito.wa2.g05.server.profiles.EmailAlreadyExistingException
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
-import it.polito.wa2.g05.server.tickets.TicketNotFoundException
-import it.polito.wa2.g05.server.tickets.TicketStatusNotValidException
-import it.polito.wa2.g05.server.tickets.EmployeeNotFoundException
-import it.polito.wa2.g05.server.tickets.SpecializationNotFoundException
+import it.polito.wa2.g05.server.tickets.*
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -57,6 +55,10 @@ class ProblemDetailsHandler: ResponseEntityExceptionHandler() {
     fun handleTicketNotFound(e: TicketStatusNotValidException) =
         ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.message!!)
 
+    @ExceptionHandler(ForbiddenActionException::class)
+    fun handleForbiddenAction(e: ForbiddenActionException) =
+        ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.message!!)
+
     // Employee Exception Handlers
 
     @ExceptionHandler(EmployeeNotFoundException::class)
@@ -75,6 +77,9 @@ class ProblemDetailsHandler: ResponseEntityExceptionHandler() {
     fun handleInvalidUserCredentials(e: InvalidUserCredentialsException) =
         ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.message!!)
 
+    @ExceptionHandler(UsernameOrEmailAlreadyExistsException::class)
+    fun handleInvalidUserCredentials(e: UsernameOrEmailAlreadyExistsException) =
+        ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.message!!)
 }
 
 data class ValidationError(

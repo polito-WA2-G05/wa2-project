@@ -1,6 +1,8 @@
 package it.polito.wa2.g05.server.tickets.repositories
 
 import it.polito.wa2.g05.server.products.entities.Product
+import it.polito.wa2.g05.server.profiles.dtos.ProfileDTO
+import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.tickets.entities.Employee
 import it.polito.wa2.g05.server.tickets.entities.Specialization
 import it.polito.wa2.g05.server.tickets.entities.Ticket
@@ -32,5 +34,8 @@ interface TicketRepository : JpaRepository<Ticket, Long> {
     @Modifying
     @Query ("UPDATE Ticket t SET t.priorityLevel = :priorityLevel, t.expert = :expert WHERE t.id = :id")
     fun startTicket(@Param("id") id:Long, @Param("priorityLevel") priorityLevel: PriorityLevel, @Param("expert") expert: Employee) : Int
+
+    fun existsTicketByIdAndCustomer(@Param("id") id: Long, @Param("customer") customer: Profile): Boolean
+    fun existsTicketByIdAndExpert(@Param("id") id: Long, @Param("expert") expert: Employee): Boolean
 }
 

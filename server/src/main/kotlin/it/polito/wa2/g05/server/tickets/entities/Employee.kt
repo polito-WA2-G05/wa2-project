@@ -1,5 +1,6 @@
 package it.polito.wa2.g05.server.tickets.entities
 
+import it.polito.wa2.g05.server.utils.EntityBase
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
@@ -13,7 +14,7 @@ import java.util.UUID
 @Table(name="employees")
 class Employee (
     @Id
-    var id: UUID? = null,
+    override var id: UUID? = null,
 
     @ManyToMany
     @JoinTable(
@@ -24,5 +25,5 @@ class Employee (
 
     @Column(name = "working_on")
     var workingOn : Int = 0,
-)
+): EntityBase<UUID>()
 

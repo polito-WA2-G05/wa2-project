@@ -42,9 +42,9 @@ class CustomAccessDeniedHandler : AccessDeniedHandler {
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 class WebSecurityConfig(val jwtAuthConverter: JwtAuthConverter) {
-    private var CUSTOMER: String = Role.CUSTOMER.clientRole
-    private var EXPERT: String = Role.EXPERT.clientRole
-    private var MANAGER: String = Role.MANAGER.clientRole
+    private var CUSTOMER: String = Role.CUSTOMER.roleName
+    private var EXPERT: String = Role.EXPERT.roleName
+    private var MANAGER: String = Role.MANAGER.roleName
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -52,6 +52,7 @@ class WebSecurityConfig(val jwtAuthConverter: JwtAuthConverter) {
             .csrf().disable()
             .authorizeHttpRequests()
             .requestMatchers("/api/public/**").permitAll()
+            .requestMatchers("/api/anonymous/**").anonymous()
             .requestMatchers("/api/authenticated/**").authenticated()
             .requestMatchers("/api/manager/**").hasRole(MANAGER)
             .requestMatchers("/api/expert/**").hasRole(EXPERT)

@@ -1,12 +1,11 @@
 package it.polito.wa2.g05.server.tickets.services
 
+import it.polito.wa2.g05.server.authentication.security.JwtAuthConverter
 import it.polito.wa2.g05.server.products.ProductNotFoundException
 import it.polito.wa2.g05.server.products.repositories.ProductRepository
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
 import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
-import it.polito.wa2.g05.server.tickets.TicketNotFoundException
-import it.polito.wa2.g05.server.tickets.SpecializationNotFoundException
-import it.polito.wa2.g05.server.tickets.TicketStatusNotValidException
+import it.polito.wa2.g05.server.tickets.*
 import it.polito.wa2.g05.server.tickets.dtos.CreateTicketFormDTO
 import it.polito.wa2.g05.server.tickets.dtos.StartTicketFormDTO
 import it.polito.wa2.g05.server.tickets.dtos.TicketDTO
@@ -31,34 +30,33 @@ class TicketServiceImpl(
     private val productRepository: ProductRepository,
     private val employeeRepository: EmployeeRepository,
     private val changeRepository: ChangeRepository,
-    private val specializationRepository: SpecializationRepository
+    private val specializationRepository: SpecializationRepository,
+    private val jwtAuthConverter: JwtAuthConverter
 ) : TicketService {
 
-    override fun createTicket(data: CreateTicketFormDTO): TicketDTO {
-        val customer = profileRepository.findById(UUID.fromString(data.customerId!!))
-        if (customer.isEmpty)
-            throw ProfileNotFoundException("Profile ${data.customerId} not found")
+    override fun createTicket(data: CreateTicketFormDTO, token: String): TicketDTO {
+        val customerId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+        val customer = profileRepository.findById(customerId)
+            .orElseThrow{ ProfileNotFoundException("Profile ${customerId} not found") }
 
         val product = productRepository.findByEan(data.productEAN!!)
-        if (product.isEmpty)
-            throw ProductNotFoundException("Product with ${data.productEAN} not found")
+            .orElseThrow { ProductNotFoundException("Product with ${data.productEAN} not found") }
 
         val specialization = specializationRepository.findById(data.specializationId!!)
-        if (specialization.isEmpty)
-            throw SpecializationNotFoundException("Specialization ${data.specializationId} not found")
+            .orElseThrow { SpecializationNotFoundException("Specialization ${data.specializationId} not found")}
 
         val ticket = ticketRepository.save(
             Ticket(
                 TicketStatus.OPEN,
                 data.title!!,
                 data.description!!,
-                customer.get(),
+                customer,
                 null,
                 null,
-                product.get(),
+                product,
                 Date(),
                 null,
-                specialization.get()
+                specialization
             )
         )
 
@@ -69,14 +67,23 @@ class TicketServiceImpl(
     protected fun removeExpert(ticket: Ticket) {
         if (ticket.expert != null) {
             employeeRepository.decreaseIsWorkingOn(ticket.expert!!.id!!)
-            ticketRepository.removeExpert(ticket.getId()!!)
+            ticketRepository.removeExpert(ticket.id!!)
         }
     }
 
     @Transactional
-    override fun cancelTicket(id: Long): TicketDTO {
+    override fun cancelTicket(id: Long, token: String): TicketDTO {
+        val customerId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+
+        val customer = profileRepository.findById(customerId)
+            .orElseThrow { ProfileNotFoundException("") }
+
         if (!ticketRepository.existsById(id))
             throw TicketNotFoundException("Ticked $id not found")
+
+        if (!ticketRepository.existsTicketByIdAndCustomer(id, customer)) {
+            throw ForbiddenActionException("You are not allowed to perform this action")
+        }
 
         val currentStatus = ticketRepository.getStatus(id)
 
@@ -95,9 +102,17 @@ class TicketServiceImpl(
     }
 
     @Transactional
-    override fun expertCloseTicket(id: Long): TicketDTO {
+    override fun expertCloseTicket(id: Long, token: String): TicketDTO {
+        val expertId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+
+        val expert = employeeRepository.findById(expertId)
+            .orElseThrow { EmployeeNotFoundException("") }
+
         if (!ticketRepository.existsById(id))
             throw TicketNotFoundException("Ticked $id not found")
+
+        if (!ticketRepository.existsTicketByIdAndExpert(id, expert))
+            throw ForbiddenActionException("You are not allowed to perform this action")
 
         val currentStatus = ticketRepository.getStatus(id)
 
@@ -129,9 +144,18 @@ class TicketServiceImpl(
     }
 
     @Transactional
-    override fun reopenTicket(id: Long): TicketDTO {
+    override fun reopenTicket(id: Long, token: String): TicketDTO {
+        val customerId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+
+        val customer = profileRepository.findById(customerId)
+            .orElseThrow { ProfileNotFoundException("") }
+
         if (!ticketRepository.existsById(id))
             throw TicketNotFoundException("Ticked $id not found")
+
+        if (!ticketRepository.existsTicketByIdAndCustomer(id, customer)) {
+            throw ForbiddenActionException("You are not allowed to perform this action")
+        }
 
         val currentStatus = ticketRepository.getStatus(id)
 
@@ -189,10 +213,18 @@ class TicketServiceImpl(
     }
 
     @Transactional
-    override fun stopTicket(id: Long): TicketDTO {
+    override fun stopTicket(id: Long, token: String): TicketDTO {
+        val expertId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+
+        val expert = employeeRepository.findById(expertId)
+            .orElseThrow { EmployeeNotFoundException("") }
 
         if (!ticketRepository.existsById(id))
             throw TicketNotFoundException("Ticked $id not found")
+
+        if (!ticketRepository.existsTicketByIdAndExpert(id, expert))
+            throw ForbiddenActionException("You are not allowed to perform this action")
+
 
         val currentStatus = ticketRepository.getStatus(id)
 
@@ -234,9 +266,18 @@ class TicketServiceImpl(
     }
 
     @Transactional
-    override fun expertResolveTicket(id: Long): TicketDTO {
+    override fun expertResolveTicket(id: Long, token: String): TicketDTO {
+        val expertId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+
+        val expert = employeeRepository.findById(expertId)
+            .orElseThrow { EmployeeNotFoundException("") }
+
         if (!ticketRepository.existsById(id))
             throw TicketNotFoundException("Ticked $id not found")
+
+        if (!ticketRepository.existsTicketByIdAndExpert(id, expert))
+            throw ForbiddenActionException("You are not allowed to perform this action")
+
 
         val currentStatus = ticketRepository.getStatus(id)
 

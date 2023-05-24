@@ -14,5 +14,5 @@ data class ChangeDTO(
 )
 
 fun Change.toDTO(): ChangeDTO {
-    return ChangeDTO(getId(), fromStatus, toStatus , timestamp, ticket?.toDTO(), expert?.toDTO())
+    return ChangeDTO(id, fromStatus, toStatus , timestamp, ticket?.toDTO(), expert?.toDTO())
 }

@@ -24,5 +24,5 @@ data class TicketDTO(
 )
 
 fun Ticket.toDTO(): TicketDTO {
-    return TicketDTO(getId(), status, title, description, customer?.toDTO(), expert?.toDTO(), priorityLevel , product?.toDTO(), createdDate, closedDate, specialization?.toDTO())
+    return TicketDTO(id, status, title, description, customer?.toDTO(), expert?.toDTO(), priorityLevel , product?.toDTO(), createdDate, closedDate, specialization?.toDTO())
 }

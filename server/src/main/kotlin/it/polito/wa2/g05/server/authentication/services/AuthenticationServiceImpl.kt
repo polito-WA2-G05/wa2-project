@@ -1,6 +1,7 @@
 package it.polito.wa2.g05.server.authentication.services
 
 import it.polito.wa2.g05.server.authentication.InvalidUserCredentialsException
+import it.polito.wa2.g05.server.authentication.UsernameOrEmailAlreadyExistsException
 import it.polito.wa2.g05.server.authentication.dtos.*
 import it.polito.wa2.g05.server.authentication.security.JwtAuthConverter
 import it.polito.wa2.g05.server.authentication.utils.Role
@@ -26,6 +27,7 @@ import org.springframework.http.*
 import org.springframework.http.client.ClientHttpResponse
 import org.springframework.web.client.ResponseErrorHandler
 import java.util.*
+import javax.ws.rs.WebApplicationException
 
 class CustomErrorHandler : ResponseErrorHandler {
     override fun hasError(response: ClientHttpResponse): Boolean {
@@ -79,43 +81,56 @@ class AuthenticationServiceImpl(
         return user
     }
 
-    private fun findRoleByName(roleName: String): RoleRepresentation =
-        keycloak.realm(realm).roles().get(roleName).toRepresentation()
+    private fun findRoleByName(roleName: String): RoleRepresentation {
+        val clientId = keycloak.realm(realm).clients().findByClientId(resource).first().id
+        return keycloak.realm(realm).clients().get(clientId).roles().get(roleName).toRepresentation()
+    }
 
     private fun assignRole(userId: String, roleRepresentation: RoleRepresentation) {
+        val clientId = keycloak.realm(realm).clients().findByClientId(resource).first().id
+
         keycloak
             .realm(realm)
             .users()
             .get(userId)
             .roles()
-            .realmLevel()
+            .clientLevel(clientId)
             .add(listOf(roleRepresentation))
     }
 
-    override fun signup(data: SignupProfileDTO) {
+    override fun signup(data: SignupProfileDTO): CreatedUserDTO {
         val password = preparePasswordRepresentation(data.details!!.password!!)
         val user = prepareUserRepresentation(data.details, password)
 
-        val response = keycloak.realm(realm).users().create(user)
 
-        val userId = CreatedResponseUtil.getCreatedId(response)
-        val role = this.findRoleByName(Role.CUSTOMER.realmRole)
-        this.assignRole(userId, role)
+        try {
+            val response = keycloak.realm(realm).users().create(user)
+            val userId = CreatedResponseUtil.getCreatedId(response)
+            val role = this.findRoleByName(Role.CUSTOMER.roleName)
+            this.assignRole(userId, role)
 
-        val profile = Profile(UUID.fromString(userId), data.name!!, data.surname!!, data.details!!.email!!)
+            val profile = profileRepository.save(
+                Profile(UUID.fromString(userId), data.name!!, data.surname!!, data.details!!.email!!)
+            )
 
-        profileRepository.save(profile)
+            return CreatedUserDTO(data.details!!.username!!, data.details!!.email!!)
+
+        } catch (e: WebApplicationException) {
+            if (e.response.status == 409)
+                throw UsernameOrEmailAlreadyExistsException("Username or email already exists")
+            else throw RuntimeException("")
+        }
     }
 
-    override fun createExpert(data: CreateExpertDTO) {
+    override fun createExpert(data: CreateExpertDTO): CreatedUserDTO {
         val password = preparePasswordRepresentation(data.details!!.password!!)
         val user = prepareUserRepresentation(data.details, password)
         val response = keycloak.realm(realm).users().create(user)
         val userId = CreatedResponseUtil.getCreatedId(response)
-        val role = this.findRoleByName(Role.EXPERT.realmRole)
+        val role = this.findRoleByName(Role.EXPERT.roleName)
         this.assignRole(userId, role)
 
-        val specializations = data.specializations.map {
+        val specializations = data.specializations!!.map {
             specializationRepository.findById(it)
                 .orElseThrow { SpecializationNotFoundException("Specialization with id $it not found") }
         }.toMutableSet()
@@ -125,12 +140,12 @@ class AuthenticationServiceImpl(
         val employee = Employee(UUID.fromString(userId), specializations)
 
         employeeRepository.save(employee)
+
+        return CreatedUserDTO(data.details!!.username!!, data.details!!.email!!)
     }
 
-
-
-    override fun login(credential: CredentialsDTO): Any {
-        val url = "http://${keycloakHostname}:8081/realms/wa2g05keycloak/protocol/openid-connect/token"
+    override fun login(credential: CredentialsDTO): UserDTO {
+        val url = "http://localhost:8081/realms/wa2g05keycloak/protocol/openid-connect/token"
 
         val headers = HttpHeaders()
         headers.setBasicAuth(resource, secreteKey)

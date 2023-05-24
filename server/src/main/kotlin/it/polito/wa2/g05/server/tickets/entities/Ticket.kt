@@ -1,10 +1,10 @@
 package it.polito.wa2.g05.server.tickets.entities
 
-import it.polito.wa2.g05.server.EntityBase
 import it.polito.wa2.g05.server.products.entities.Product
 import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.tickets.utils.PriorityLevel
 import it.polito.wa2.g05.server.tickets.utils.TicketStatus
+import it.polito.wa2.g05.server.utils.SerialIdEntity
 import jakarta.persistence.*
 import java.util.Date
 
@@ -43,4 +43,4 @@ class Ticket(
     @ManyToOne
     @JoinColumn(name="specialization_id" , referencedColumnName = "id")
     var specialization: Specialization? = null
-):EntityBase<Long> ()
+): SerialIdEntity()

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -25,21 +26,21 @@ class TicketControl(private val ticketService: TicketService) {
     // /api/customer/tickets
     @PostMapping("/customer/tickets")
     @ResponseStatus(HttpStatus.CREATED)
-    fun createTicket(@RequestBody @Valid data: CreateTicketFormDTO, br: BindingResult): TicketDTO {
+    fun createTicket(@RequestHeader("Authorization") token: String, @RequestBody @Valid data: CreateTicketFormDTO, br: BindingResult): TicketDTO {
         if (br.hasErrors()) throw ValidationException(br.fieldErrors, "Validation errors")
-        return ticketService.createTicket(data)
+        return ticketService.createTicket(data, token)
     }
 
     // /api/customer/tickets/{id}/cancel
     @PatchMapping("/customer/tickets/{id}/cancel")
-    fun cancelTicket(@PathVariable id: Long) : TicketDTO{
-        return ticketService.cancelTicket(id)
+    fun cancelTicket(@RequestHeader("Authorization") token: String, @PathVariable id: Long) : TicketDTO{
+        return ticketService.cancelTicket(id, token)
     }
 
     // /api/expert/tickets/{id}/close
     @PatchMapping("/expert/tickets/{id}/close")
-    fun expertCloseTicket(@PathVariable id: Long) : TicketDTO{
-        return ticketService.expertCloseTicket(id)
+    fun expertCloseTicket(@RequestHeader("Authorization") token: String, @PathVariable id: Long) : TicketDTO{
+        return ticketService.expertCloseTicket(id, token)
     }
 
     // /api/manager/tickets/{id}/close
@@ -50,8 +51,8 @@ class TicketControl(private val ticketService: TicketService) {
 
     // /api/customer/tickets/{id}/reopen
     @PatchMapping("/customer/tickets/{id}/reopen")
-    fun reopenTicket(@PathVariable id: Long) : TicketDTO{
-        return ticketService.reopenTicket(id)
+    fun reopenTicket(@RequestHeader("Authorization") token: String, @PathVariable id: Long) : TicketDTO{
+        return ticketService.reopenTicket(id, token)
     }
 
     // /api/manager/tickets/{id}/start
@@ -63,14 +64,14 @@ class TicketControl(private val ticketService: TicketService) {
 
     // /api/expert/tickets/{id}/stop
     @PatchMapping("/expert/tickets/{id}/stop")
-    fun stopTicket(@PathVariable id: Long) : TicketDTO{
-        return ticketService.stopTicket(id)
+    fun stopTicket(@RequestHeader("Authorization") token: String, @PathVariable id: Long) : TicketDTO{
+        return ticketService.stopTicket(id, token)
     }
 
     // /api/expert/tickets/{id}/resolve
     @PatchMapping("/expert/tickets/{id}/resolve")
-    fun expertResolveTicket(@PathVariable id: Long) : TicketDTO{
-        return ticketService.expertResolveTicket(id)
+    fun expertResolveTicket(@RequestHeader("Authorization") token: String, @PathVariable id: Long) : TicketDTO{
+        return ticketService.expertResolveTicket(id, token)
     }
     // /api/manager/tickets/{id}/resolve
     @PatchMapping("/manager/tickets/{id}/resolve")
