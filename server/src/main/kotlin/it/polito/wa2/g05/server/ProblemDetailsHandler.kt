@@ -1,24 +1,31 @@
 package it.polito.wa2.g05.server
 
+import io.micrometer.observation.annotation.Observed
 import it.polito.wa2.g05.server.authentication.InvalidUserCredentialsException
 import it.polito.wa2.g05.server.authentication.UsernameOrEmailAlreadyExistsException
 import it.polito.wa2.g05.server.products.ProductNotFoundException
 import it.polito.wa2.g05.server.profiles.EmailAlreadyExistingException
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
 import it.polito.wa2.g05.server.tickets.*
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 
+@Observed
 @RestControllerAdvice
 class ProblemDetailsHandler: ResponseEntityExceptionHandler() {
+
+    private val log = LoggerFactory.getLogger("ProblemDetailsHandler")
 
     // General Exception Handlers
 
     @ExceptionHandler(ValidationException::class)
     fun handleValidationErrors(e: ValidationException): ProblemDetail {
+        log.error("Validation error")
+
         val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.message!!)
 
         val validationErrors = e.errors.map {

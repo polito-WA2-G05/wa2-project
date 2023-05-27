@@ -52,6 +52,7 @@ class WebSecurityConfig(val jwtAuthConverter: JwtAuthConverter) {
             .csrf().disable()
             .authorizeHttpRequests()
             .requestMatchers("/api/public/**").permitAll()
+            .requestMatchers("/actuator/*").permitAll()
             .requestMatchers("/api/anonymous/**").anonymous()
             .requestMatchers("/api/authenticated/**").authenticated()
             .requestMatchers("/api/manager/**").hasRole(MANAGER)

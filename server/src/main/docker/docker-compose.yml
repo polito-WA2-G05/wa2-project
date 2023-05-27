@@ -17,6 +17,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - KEYCLOAK_HOSTNAME=g05-keycloak
+    env_file:
+      - ./config/.env.docker
 
   keycloak:
     image: 'gcr.io/g5project-385811/keycloak:latest'
