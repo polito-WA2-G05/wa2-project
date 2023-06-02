@@ -1,10 +1,12 @@
 package it.polito.wa2.g05.server.authentication.services
 
-import it.polito.wa2.g05.server.authentication.dtos.CredentialsDTO
-import org.springframework.http.HttpStatusCode
+import it.polito.wa2.g05.server.authentication.dtos.*
+import org.springframework.http.ResponseEntity
 
 interface AuthenticationService {
-    fun login(credentialDTO: CredentialsDTO): Any
-    fun logout(token: String): HttpStatusCode
-
+    fun signup(data: UserFormDTO<ProfileDetailsDTO>): CreatedUserDTO
+    fun createExpert(data: UserFormDTO<ExpertDetailsDTO>): CreatedUserDTO
+    fun login(credentials: CredentialsDTO): AuthenticatedUserDTO
+    fun logout(token: String): ResponseEntity<Unit>
+    fun refreshToken(data: RefreshTokenDTO): RefreshedTokensDTO
 }

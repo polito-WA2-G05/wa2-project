@@ -1,104 +1,79 @@
 package it.polito.wa2.g05.server.authentication.services
 
-import it.polito.wa2.g05.server.authentication.InvalidUserCredentialsException
-import it.polito.wa2.g05.server.authentication.dtos.CredentialsDTO
-import it.polito.wa2.g05.server.authentication.dtos.UserDTO
-import it.polito.wa2.g05.server.authentication.security.JwtAuthConverter
+import it.polito.wa2.g05.server.authentication.dtos.*
+import it.polito.wa2.g05.server.authentication.utils.UserDetails
+import it.polito.wa2.g05.server.authentication.security.keycloak.KeycloakService
+import it.polito.wa2.g05.server.authentication.utils.Role
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
+import it.polito.wa2.g05.server.profiles.dtos.toDTO
+import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
 import it.polito.wa2.g05.server.tickets.EmployeeNotFoundException
+import it.polito.wa2.g05.server.tickets.SpecializationNotFoundException
+import it.polito.wa2.g05.server.tickets.dtos.toDTO
+import it.polito.wa2.g05.server.tickets.entities.Employee
 import it.polito.wa2.g05.server.tickets.repositories.EmployeeRepository
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.web.client.RestTemplateBuilder
+import it.polito.wa2.g05.server.tickets.repositories.SpecializationRepository
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestTemplate
-import org.springframework.core.ParameterizedTypeReference
-import org.springframework.http.*
-import org.springframework.http.client.ClientHttpResponse
-import org.springframework.web.client.ResponseErrorHandler
-
-class CustomErrorHandler: ResponseErrorHandler {
-    override fun hasError(response: ClientHttpResponse): Boolean {
-        return response.statusCode.isError
-    }
-
-    override fun handleError(response: ClientHttpResponse) {
-        if (response.statusCode == HttpStatus.UNAUTHORIZED)
-            throw InvalidUserCredentialsException("Invalid credentials")
-    }
-
-}
+import org.springframework.http.ResponseEntity
 
 @Service
 class AuthenticationServiceImpl(
-    @Value("\${keycloak.hostname}") private val keycloakHostname: String,
-    val employeeRepository: EmployeeRepository,
-    val profileRepository: ProfileRepository,
-    val jwtAuthConverter: JwtAuthConverter
+    private val keycloakService: KeycloakService,
+    private val employeeRepository: EmployeeRepository,
+    private val profileRepository: ProfileRepository,
+    private val specializationRepository: SpecializationRepository,
 ) : AuthenticationService {
-    override fun login(credentialDTO: CredentialsDTO): Any {
-        val url = "http://${keycloakHostname}:8081/realms/wa2g05keycloak/protocol/openid-connect/token"
 
-        val headers = HttpHeaders()
-        headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
-        val request = HttpEntity(
-            "grant_type=password&client_id=wa2g05keycloak-client&username=${credentialDTO.username}&password=${credentialDTO.password}",
-            headers
-        )
+    override fun signup(data: UserFormDTO<ProfileDetailsDTO>): CreatedUserDTO {
+        val uuid = keycloakService.createUser(data.email, data.username, data.password, Role.CUSTOMER)
 
-        val restTemplate = RestTemplateBuilder().errorHandler(CustomErrorHandler()).build()
+        val profile = Profile(uuid, data.details.name, data.details.surname, data.email)
 
-        try {
-            val response: ResponseEntity<Map<String, Any>> = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                request,
-                object : ParameterizedTypeReference<Map<String, Any>>() {})
+        profileRepository.save(profile)
 
-            val accessToken = response.body?.get("access_token") as String
-
-            val role = jwtAuthConverter.getRole(accessToken)
-            val uuid = jwtAuthConverter.getUUID(accessToken)
-
-            if (role == "Expert" || role == "Manager") {
-                val employee = employeeRepository.findById(uuid).orElseThrow { EmployeeNotFoundException("$role $uuid is not found") }
-
-                return UserDTO(
-                        accessToken,
-                        jwtAuthConverter.getEmail(accessToken),
-                        jwtAuthConverter.getUsername(accessToken),
-                        null,
-                        null,
-                        if (role == "Expert") employee.workingOn else null
-                )
-            } else {
-                val profile = profileRepository.findById(uuid).orElseThrow { ProfileNotFoundException("Customer $uuid is not found") }
-                return UserDTO(
-                        accessToken,
-                        jwtAuthConverter.getEmail(accessToken),
-                        jwtAuthConverter.getUsername(accessToken),
-                        profile.name,
-                        profile.surname,
-                        null
-                )
-            }
-        } catch (e: InvalidUserCredentialsException){
-            throw e
-        }
+        return CreatedUserDTO(data.username, data.email)
     }
 
-    override fun logout(token: String): HttpStatusCode {
-        val url = "http://${keycloakHostname}:8081/realms/wa2g05keycloak/protocol/openid-connect/logout"
+    override fun createExpert(data: UserFormDTO<ExpertDetailsDTO>): CreatedUserDTO {
+        val specializations = data.details.specializations.map {
+            specializationRepository.findById(it)
+                .orElseThrow { SpecializationNotFoundException(it) }
+        }.toMutableSet()
 
-        val headers = HttpHeaders()
-        headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
-        headers.set("Authorization", token)
-        val request = HttpEntity<Unit>(headers)
+        val uuid = keycloakService.createUser(data.email, data.username, data.password, Role.EXPERT)
 
-        val restTemplate = RestTemplate()
-        val response: ResponseEntity<String> = restTemplate.exchange(url, HttpMethod.GET, request, String::class.java)
+        val employee = Employee(uuid, specializations)
 
-        return response.statusCode
+        employeeRepository.save(employee)
+
+        return CreatedUserDTO(data.username, data.email)
+    }
+
+    private fun createAuthenticatedUser(isEmployee: Boolean, user: UserDetails): AuthenticatedUserDTO =
+        AuthenticatedUserDTO(
+            if (isEmployee) employeeRepository.findById(user.uuid).orElseThrow {
+                EmployeeNotFoundException(user.uuid)
+            }.toDTO()
+            else profileRepository.findById(user.uuid).orElseThrow {
+                ProfileNotFoundException(user.email)
+            }.toDTO(),
+            user
+        )
+
+    override fun login(credentials: CredentialsDTO): AuthenticatedUserDTO {
+        val user = keycloakService.authenticateUser(credentials.username, credentials.password)
+
+        val isEmployee = user.authorities.contains(Role.EXPERT.roleName)
+                || user.authorities.contains(Role.MANAGER.roleName)
+
+        return this.createAuthenticatedUser(isEmployee, user)
+    }
+
+    override fun logout(token: String): ResponseEntity<Unit> =
+        keycloakService.invalidateToken(token)
+
+    override fun refreshToken(data: RefreshTokenDTO): RefreshedTokensDTO {
+        return keycloakService.refreshToken(data.refreshToken)
     }
 }

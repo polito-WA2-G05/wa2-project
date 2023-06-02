@@ -1,71 +1,56 @@
 package it.polito.wa2.g05.server.authentication.security
 
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
+import it.polito.wa2.g05.server.authentication.security.jwt.JwtAuthConverter
+import it.polito.wa2.g05.server.authentication.security.jwt.JwtTokenValidationFilter
+import it.polito.wa2.g05.server.authentication.security.resolvers.DelegatedAccessDeniedHandler
+import it.polito.wa2.g05.server.authentication.security.resolvers.DelegatedAuthenticationEntryPoint
+import it.polito.wa2.g05.server.authentication.utils.Role
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
-import org.springframework.security.core.AuthenticationException
-import org.springframework.security.web.AuthenticationEntryPoint
-import org.springframework.security.web.access.AccessDeniedHandler
-
-class CustomAuthenticationEntryPoint : AuthenticationEntryPoint {
-    override fun commence(
-        request: HttpServletRequest?,
-        response: HttpServletResponse?,
-        authException: AuthenticationException?
-    ) {
-        response?.status = HttpServletResponse.SC_UNAUTHORIZED
-        response?.writer?.write("You are not authenticated, please perform login first")
-    }
-
-}
-
-class CustomAccessDeniedHandler : AccessDeniedHandler {
-    override fun handle(
-        request: HttpServletRequest?,
-        response: HttpServletResponse?,
-        accessDeniedException: AccessDeniedException?
-    ) {
-        response?.status = HttpServletResponse.SC_FORBIDDEN
-        response?.writer?.write("You are not allowed to perform this action")
-    }
-
-}
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
-class WebSecurityConfig(val jwtAuthConverter: JwtAuthConverter) {
-    private var CUSTOMER: String = "Customer"
-    private var EXPERT: String = "Expert"
-    private var MANAGER: String = "Manager"
+@EnableMethodSecurity(prePostEnabled = true)
+class WebSecurityConfig(
+    private val jwtAuthConverter: JwtAuthConverter,
+    private val authenticationEntryPoint: DelegatedAuthenticationEntryPoint,
+    private val jwtTokenValidationFilter: JwtTokenValidationFilter,
+    private val accessDeniedHandler: DelegatedAccessDeniedHandler
+) {
+    private var CUSTOMER: String = Role.CUSTOMER.roleName
+    private var EXPERT: String = Role.EXPERT.roleName
+    private var MANAGER: String = Role.MANAGER.roleName
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http.cors().and()
             .csrf().disable()
             .authorizeHttpRequests()
-            .requestMatchers("/api/public/**").permitAll()
+            .requestMatchers("/actuator/**").permitAll()
+            .requestMatchers("/api/anonymous/**").anonymous()
             .requestMatchers("/api/authenticated/**").authenticated()
             .requestMatchers("/api/manager/**").hasRole(MANAGER)
             .requestMatchers("/api/expert/**").hasRole(EXPERT)
             .requestMatchers("/api/customer/**").hasRole(CUSTOMER)
-            .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .requestMatchers("/api/public/**").permitAll()
+            .anyRequest().permitAll()
             .and()
             .formLogin().disable()
             .logout().disable()
             .exceptionHandling()
-            .authenticationEntryPoint(CustomAuthenticationEntryPoint())
-            .accessDeniedHandler(CustomAccessDeniedHandler())
-            .and()
-            .oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthConverter)
+            .authenticationEntryPoint(authenticationEntryPoint)
+            .accessDeniedHandler(accessDeniedHandler)
+
+        http.addFilterAfter(jwtTokenValidationFilter, UsernamePasswordAuthenticationFilter::class.java)
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthConverter)
+            .and().authenticationEntryPoint(authenticationEntryPoint)
 
         return http.build()
     }

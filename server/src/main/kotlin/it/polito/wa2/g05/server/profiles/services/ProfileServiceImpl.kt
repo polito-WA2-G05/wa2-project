@@ -1,44 +1,36 @@
 package it.polito.wa2.g05.server.profiles.services
 
-import it.polito.wa2.g05.server.profiles.EmailAlreadyExistingException
+import io.micrometer.observation.annotation.Observed
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
 import it.polito.wa2.g05.server.profiles.dtos.ProfileDTO
 import it.polito.wa2.g05.server.profiles.dtos.ProfileFormDTO
 import it.polito.wa2.g05.server.profiles.dtos.toDTO
-import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
+@Observed
 class ProfileServiceImpl(private val profileRepository: ProfileRepository) : ProfileService {
-    override fun getProfile(email: String): ProfileDTO {
-        val profile = profileRepository.findByEmail(email).map { it.toDTO() }
-        if(profile.isEmpty){
-            throw ProfileNotFoundException("Profile not found with the $email inserted")
-        }
-        return profile.get()
-    }
 
-    override fun createProfile(data: ProfileFormDTO): ProfileDTO {
-        if (profileRepository.findByEmail(data.email!!).isPresent)
-                throw EmailAlreadyExistingException("A profile with ${data.email} as email already exists")
+    private val log = LoggerFactory.getLogger("ProfileServiceImpl")
 
-        return profileRepository.save(Profile(data.name!!.trim(), data.surname!!.trim(), data.email!!)).toDTO()
-    }
+    override fun getProfile(email: String): ProfileDTO =
+        profileRepository.findByEmail(email).orElseThrow {
+            log.error("Exception throws processing the $email in getting profile")
+            throw ProfileNotFoundException(email)
+        }.toDTO()
 
     override fun updateProfile(email: String, data: ProfileFormDTO): ProfileDTO {
-        val profile = profileRepository.findByEmail(email)
-        if(profile.isEmpty){
-            throw ProfileNotFoundException("Profile not found with the $email provided")
+        val profile = profileRepository.findByEmail(email).orElseThrow {
+            log.error("Profile couldn't be updated for the $email provided")
+            throw ProfileNotFoundException(email)
         }
 
-        val entity = profile.get()
+        profile.name = data.name
+        profile.surname = data.surname
+        // profile.email = data.email
 
-        entity.name = data.name!!
-        entity.surname = data.surname!!
-        entity.email = data.email!!
-
-        return profileRepository.save(entity).toDTO()
+        return profileRepository.save(profile).toDTO()
     }
 }

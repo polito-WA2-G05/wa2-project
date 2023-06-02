@@ -1,12 +1,13 @@
 package it.polito.wa2.g05.server.tickets.services
 
+import io.micrometer.observation.annotation.Observed
+import it.polito.wa2.g05.server.authentication.security.jwt.JwtDecoder
+import it.polito.wa2.g05.server.authentication.utils.UserDetails
 import it.polito.wa2.g05.server.products.ProductNotFoundException
 import it.polito.wa2.g05.server.products.repositories.ProductRepository
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
 import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
-import it.polito.wa2.g05.server.tickets.TicketNotFoundException
-import it.polito.wa2.g05.server.tickets.SpecializationNotFoundException
-import it.polito.wa2.g05.server.tickets.TicketStatusNotValidException
+import it.polito.wa2.g05.server.tickets.*
 import it.polito.wa2.g05.server.tickets.dtos.CreateTicketFormDTO
 import it.polito.wa2.g05.server.tickets.dtos.StartTicketFormDTO
 import it.polito.wa2.g05.server.tickets.dtos.TicketDTO
@@ -22,43 +23,55 @@ import it.polito.wa2.g05.server.tickets.utils.PriorityLevel
 import org.springframework.stereotype.Service
 import it.polito.wa2.g05.server.tickets.utils.TicketStatus
 import jakarta.transaction.Transactional
+import org.slf4j.LoggerFactory
 import java.util.*
 
 @Service
+@Observed
 class TicketServiceImpl(
     private val ticketRepository: TicketRepository,
     private val profileRepository: ProfileRepository,
     private val productRepository: ProductRepository,
     private val employeeRepository: EmployeeRepository,
     private val changeRepository: ChangeRepository,
-    private val specializationRepository: SpecializationRepository
+    private val specializationRepository: SpecializationRepository,
+    private val jwtDecoder: JwtDecoder
 ) : TicketService {
 
-    override fun createTicket(data: CreateTicketFormDTO): TicketDTO {
-        val customer = profileRepository.findById(UUID.fromString(data.customerId!!))
-        if (customer.isEmpty)
-            throw ProfileNotFoundException("Profile ${data.customerId} not found")
+    private val log = LoggerFactory.getLogger("TicketServiceImpl")
 
-        val product = productRepository.findByEan(data.productEAN!!)
-        if (product.isEmpty)
-            throw ProductNotFoundException("Product with ${data.productEAN} not found")
+    override fun createTicket(data: CreateTicketFormDTO, token: String): TicketDTO {
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
+        val customer = profileRepository.findById(customerId)
+            .orElseThrow {
+                log.error("Profile with ${customerId} not found")
+                ProfileNotFoundException(customerId.toString())
+            }
 
-        val specialization = specializationRepository.findById(data.specializationId!!)
-        if (specialization.isEmpty)
-            throw SpecializationNotFoundException("Specialization ${data.specializationId} not found")
+        val product = productRepository.findByEan(data.productEan)
+            .orElseThrow {
+                log.error("Product with ${data.productEan} not found")
+                ProductNotFoundException(data.productEan)
+            }
+
+        val specialization = specializationRepository.findById(data.specializationId)
+            .orElseThrow {
+                log.error("Specialization ${data.specializationId} not found")
+                SpecializationNotFoundException(data.specializationId)
+            }
 
         val ticket = ticketRepository.save(
             Ticket(
                 TicketStatus.OPEN,
-                data.title!!,
-                data.description!!,
-                customer.get(),
+                data.title,
+                data.description,
+                customer,
                 null,
                 null,
-                product.get(),
+                product,
                 Date(),
                 null,
-                specialization.get()
+                specialization
             )
         )
 
@@ -68,20 +81,37 @@ class TicketServiceImpl(
 
     protected fun removeExpert(ticket: Ticket) {
         if (ticket.expert != null) {
-            employeeRepository.decreaseIsWorkingOn(ticket.expert!!.getId()!!)
-            ticketRepository.removeExpert(ticket.getId()!!)
+            employeeRepository.decreaseIsWorkingOn(ticket.expert!!.id!!)
+            ticketRepository.removeExpert(ticket.id!!)
         }
     }
 
     @Transactional
-    override fun cancelTicket(id: Long): TicketDTO {
-        if (!ticketRepository.existsById(id))
-            throw TicketNotFoundException("Ticked $id not found")
+    override fun cancelTicket(id: Long, token: String): TicketDTO {
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
+
+        val customer = profileRepository.findById(customerId)
+            .orElseThrow {
+                log.error("Profile $customerId not found")
+                ProfileNotFoundException(customerId.toString())
+            }
+
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticket $id not found")
+            throw TicketNotFoundException(id)
+        }
+
+        if (ticketRepository.getCustomer(id) != customer) {
+            log.error("You are not allowed to perform this action")
+            throw ForbiddenActionException("You are not allowed to perform this action")
+        }
 
         val currentStatus = ticketRepository.getStatus(id)
 
-        if (currentStatus == TicketStatus.CANCELLED)
+        if (currentStatus == TicketStatus.CANCELLED) {
+            log.error("Status can't be set to CANCELLED from $currentStatus")
             throw TicketStatusNotValidException("Status can't be set to CANCELLED from $currentStatus")
+        }
 
         ticketRepository.updateStatus(id, TicketStatus.CANCELLED, Date())
 
@@ -95,15 +125,31 @@ class TicketServiceImpl(
     }
 
     @Transactional
-    override fun expertCloseTicket(id: Long): TicketDTO {
-        if (!ticketRepository.existsById(id))
-            throw TicketNotFoundException("Ticked $id not found")
+    override fun expertCloseTicket(id: Long, token: String): TicketDTO {
+        val expertId = UserDetails(jwtDecoder.decode(token)).uuid
+
+        val expert = employeeRepository.findById(expertId)
+            .orElseThrow {
+                log.error("Expert $expertId not found")
+                EmployeeNotFoundException(expertId)
+            }
+
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
+
+        if (ticketRepository.getExpert(id) != expert) {
+            log.error("You are not allowed to perform this action")
+            throw ForbiddenActionException("You are not allowed to perform this action")
+        }
 
         val currentStatus = ticketRepository.getStatus(id)
 
-        if (currentStatus != TicketStatus.IN_PROGRESS)
+        if (currentStatus != TicketStatus.IN_PROGRESS) {
+            log.error("Status can't be set to CLOSE from $currentStatus")
             throw TicketStatusNotValidException("Status can't be set to CLOSE from $currentStatus")
-
+        }
         ticketRepository.updateStatus(id, TicketStatus.CLOSED, Date())
         val ticket = ticketRepository.findById(id).get()
         changeRepository.save(Change(currentStatus, TicketStatus.CLOSED, Date(), ticket, ticket.expert))
@@ -113,13 +159,16 @@ class TicketServiceImpl(
 
     @Transactional
     override fun managerCloseTicket(id: Long): TicketDTO {
-        if (!ticketRepository.existsById(id))
-            throw TicketNotFoundException("Ticked $id not found")
-
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
         val currentStatus = ticketRepository.getStatus(id)
 
-        if (currentStatus == TicketStatus.CLOSED || currentStatus == TicketStatus.CANCELLED || currentStatus == TicketStatus.IN_PROGRESS)
+        if (currentStatus == TicketStatus.CLOSED || currentStatus == TicketStatus.CANCELLED || currentStatus == TicketStatus.IN_PROGRESS) {
+            log.error("Status can't be set to CLOSE from $currentStatus")
             throw TicketStatusNotValidException("Status can't be set to CLOSE from $currentStatus")
+        }
 
         ticketRepository.updateStatus(id, TicketStatus.CLOSED, Date())
         val ticket = ticketRepository.findById(id).get()
@@ -129,9 +178,24 @@ class TicketServiceImpl(
     }
 
     @Transactional
-    override fun reopenTicket(id: Long): TicketDTO {
-        if (!ticketRepository.existsById(id))
-            throw TicketNotFoundException("Ticked $id not found")
+    override fun reopenTicket(id: Long, token: String): TicketDTO {
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
+
+        val customer = profileRepository.findById(customerId)
+            .orElseThrow {
+                log.error("Profile $customerId not found")
+                ProfileNotFoundException(customerId.toString())
+            }
+
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
+
+        if (ticketRepository.getCustomer(id) != customer) {
+            log.error("You are not allowed to perform this action")
+            throw ForbiddenActionException("You are not allowed to perform this action")
+        }
 
         val currentStatus = ticketRepository.getStatus(id)
 
@@ -156,10 +220,17 @@ class TicketServiceImpl(
 
     @Transactional
     override fun startTicket(id: Long, data: StartTicketFormDTO): TicketDTO {
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
+
         val currentStatus = ticketRepository.getStatus(id)
+
         if (currentStatus == TicketStatus.OPEN || currentStatus == TicketStatus.REOPENED) {
             if (ticketRepository.updateStatus(id, TicketStatus.IN_PROGRESS) == 0) {
-                throw TicketNotFoundException("Ticket $id not found")
+                log.error("Ticket $id not found")
+                throw TicketNotFoundException(id)
             }
 
             val specialization = ticketRepository.getSpecialization(id)
@@ -175,8 +246,8 @@ class TicketServiceImpl(
                 }
             }
 
-            ticketRepository.startTicket(id, PriorityLevel.values()[data.priorityLevel!!], selectedEmployee)
-            employeeRepository.increaseIsWorkingOn(selectedEmployee.getId()!!)
+            ticketRepository.startTicket(id, PriorityLevel.values()[data.priorityLevel], selectedEmployee)
+            employeeRepository.increaseIsWorkingOn(selectedEmployee.id!!)
 
             val ticket = ticketRepository.findById(id).get()
 
@@ -185,14 +256,28 @@ class TicketServiceImpl(
             return ticket.toDTO()
         }
 
+        log.error("Status can't be set to IN_PROGRESS from $currentStatus")
         throw TicketStatusNotValidException("Status can't be set to IN_PROGRESS from $currentStatus")
     }
 
     @Transactional
-    override fun stopTicket(id: Long): TicketDTO {
+    override fun stopTicket(id: Long, token: String): TicketDTO {
+        val expertId = UserDetails(jwtDecoder.decode(token)).uuid
 
-        if (!ticketRepository.existsById(id))
-            throw TicketNotFoundException("Ticked $id not found")
+        val expert = employeeRepository.findById(expertId)
+            .orElseThrow {
+                log.error("Expert $expertId not found")
+                EmployeeNotFoundException(expertId)
+            }
+
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
+        if (ticketRepository.getExpert(id) != expert) {
+            log.error("You are not allowed to perform this action")
+            throw ForbiddenActionException("You are not allowed to perform this action")
+        }
 
         val currentStatus = ticketRepository.getStatus(id)
 
@@ -203,14 +288,18 @@ class TicketServiceImpl(
             changeRepository.save(Change(currentStatus, TicketStatus.OPEN, Date(), ticket, ticket.expert))
             return ticket.toDTO()
         }
+
+        log.error("Status can't be set to OPEN from $currentStatus")
         throw TicketStatusNotValidException("Status can't be set to OPEN from $currentStatus")
     }
 
     @Transactional
     override fun managerResolveTicket(id: Long): TicketDTO {
 
-        if (!ticketRepository.existsById(id))
-            throw TicketNotFoundException("Ticked $id not found")
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
 
         val currentStatus = ticketRepository.getStatus(id)
 
@@ -230,19 +319,37 @@ class TicketServiceImpl(
             )
             return ticket.toDTO()
         }
+
+        log.error("Status can't be set to RESOLVED from $currentStatus")
         throw TicketStatusNotValidException("Status can't be set to RESOLVED from $currentStatus")
     }
 
     @Transactional
-    override fun expertResolveTicket(id: Long): TicketDTO {
-        if (!ticketRepository.existsById(id))
-            throw TicketNotFoundException("Ticked $id not found")
+    override fun expertResolveTicket(id: Long, token: String): TicketDTO {
+        val expertId = UserDetails(jwtDecoder.decode(token)).uuid
+
+        val expert = employeeRepository.findById(expertId)
+            .orElseThrow {
+                log.error("Expert $expertId not found")
+                EmployeeNotFoundException(expertId)
+            }
+
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
+
+        if (ticketRepository.getExpert(id) != expert) {
+            log.error("You are not allowed to perform this action")
+            throw ForbiddenActionException("You are not allowed to perform this action")
+        }
 
         val currentStatus = ticketRepository.getStatus(id)
 
-        if (currentStatus != TicketStatus.IN_PROGRESS)
+        if (currentStatus != TicketStatus.IN_PROGRESS) {
+            log.error("Status can't be set to RESOLVED from $currentStatus")
             throw TicketStatusNotValidException("Status can't be set to RESOLVED from $currentStatus")
-
+        }
         ticketRepository.updateStatus(id, TicketStatus.RESOLVED, Date())
         val ticket = ticketRepository.findById(id).get()
 
@@ -259,21 +366,19 @@ class TicketServiceImpl(
         return ticket.toDTO()
     }
 
-    override fun getTicket(id: Long): TicketDTO {
-        val ticket = ticketRepository.findById(id).map { it.toDTO() }
+    override fun getTicket(id: Long): TicketDTO =
+        ticketRepository.findById(id).orElseThrow {
+            log.error("Ticket $id not found")
+            throw TicketNotFoundException(id)
+        }.toDTO()
 
-        if (ticket.isEmpty)
-            throw TicketNotFoundException("Ticket $id not found")
 
-        return ticket.get()
-    }
+    override fun getAllTicketsByProductId(productEan: String): List<TicketDTO> {
+        val product = productRepository.findByEan(productEan).orElseThrow {
+            log.error("Product with ean $productEan not found")
+            throw ProductNotFoundException(productEan)
+        }
 
-    override fun getAllTicketsByProductId(productId: Long): List<TicketDTO> {
-        val product = productRepository.findById(productId)
-
-        if (product.isEmpty)
-            throw ProductNotFoundException("Product with id $productId not found")
-
-        return ticketRepository.findAllByProduct(product.get()).map { it.toDTO() }
+        return ticketRepository.findAllByProduct(product).map { it.toDTO() }
     }
 }

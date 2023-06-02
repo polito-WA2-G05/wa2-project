@@ -8,5 +8,5 @@ data class SpecializationDTO(
 )
 
 fun Specialization.toDTO(): SpecializationDTO {
-    return SpecializationDTO(getId(), name)
+    return SpecializationDTO(id, name)
 }

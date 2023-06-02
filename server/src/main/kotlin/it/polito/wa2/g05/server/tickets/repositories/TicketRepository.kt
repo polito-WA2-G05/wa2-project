@@ -1,6 +1,8 @@
 package it.polito.wa2.g05.server.tickets.repositories
 
 import it.polito.wa2.g05.server.products.entities.Product
+import it.polito.wa2.g05.server.profiles.dtos.ProfileDTO
+import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.tickets.entities.Employee
 import it.polito.wa2.g05.server.tickets.entities.Specialization
 import it.polito.wa2.g05.server.tickets.entities.Ticket
@@ -24,6 +26,12 @@ interface TicketRepository : JpaRepository<Ticket, Long> {
     @Query("SELECT t.status FROM Ticket t WHERE t.id = :id")
     fun getStatus(@Param("id") id: Long): TicketStatus
 
+    @Query("SELECT t.customer FROM Ticket t WHERE t.id = :id")
+    fun getCustomer(@Param("id") id: Long): Profile
+
+    @Query("SELECT t.expert FROM Ticket t WHERE t.id = :id")
+    fun getExpert(@Param("id") id: Long): Employee?
+
     @Query("SELECT t.specialization FROM Ticket t WHERE t.id = :id")
     fun getSpecialization(@Param("id") id: Long): Specialization
 
@@ -32,5 +40,6 @@ interface TicketRepository : JpaRepository<Ticket, Long> {
     @Modifying
     @Query ("UPDATE Ticket t SET t.priorityLevel = :priorityLevel, t.expert = :expert WHERE t.id = :id")
     fun startTicket(@Param("id") id:Long, @Param("priorityLevel") priorityLevel: PriorityLevel, @Param("expert") expert: Employee) : Int
+
 }
 

@@ -1,7 +1,6 @@
 package it.polito.wa2.g05.server.profiles.dtos
 
 import it.polito.wa2.g05.server.profiles.entities.Profile
-import java.util.UUID
 
 data class ProfileDTO(
     val name: String,

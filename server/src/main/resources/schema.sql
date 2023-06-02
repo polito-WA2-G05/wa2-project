@@ -48,10 +48,10 @@ create table if not exists tickets
 
 create table if not exists expert_specialization
 (
-    id        serial primary key,
     expert_id uuid not null,
     specs_id  int  not null,
 
+    PRIMARY KEY (expert_id, specs_id),
     FOREIGN KEY (expert_id) REFERENCES employees (id),
     FOREIGN KEY (specs_id) REFERENCES specializations (id)
 );
