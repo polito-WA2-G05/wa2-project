@@ -22,6 +22,38 @@ Note that:
 - keycloak runs on `http://localhost:8081`
 - postgres database runs on `http://localhost:5432`
 
+### Observability
+
+Also within `/server/src/main/docker`, you can find the `docker-compose.observability.yml` file.
+In order to run also observability services, i.e. Tempo, Loki, Prometheus and Grafana, you have to execute also the following command:
+
+```bash
+docker-compose -f docker-compose.observability.yml up
+```
+
+Note that you could see error logs on the Spring Boot server output console if you don't run observability services.
+In order to disable observability on the server application you can edit the `docker-compose.yml` file with the following `environment` for `server` service:
+
+```yml
+services:
+  server:
+    image: 'gcr.io/g5project-385811/server:latest'
+    
+    # Don't change here
+    
+    environment:
+      
+      # Don't change here
+      
+      - LOKI_ENABLED=false # <--- Change this one from true to false
+      - MANAGEMENT_TRACING_ENABLED=false # <--- Change this one from true to false
+    env_file:
+      - ./config/.env.docker
+```
+
+Then you can start services with no error logs using the command above.
+
+
 ### User Credentials
 
 If you have pulled our images, you will be able to use the following user credentials to perform login:
@@ -57,9 +89,7 @@ List all registered products in the database
         "ean": 4935531465706,
         "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
         "brand": "JMT"
-    },
-  
-    ...
+    }
 ]
 ```
 
