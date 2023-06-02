@@ -3,7 +3,6 @@ package it.polito.wa2.g05.server
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
-
 @SpringBootApplication
 
 class ServerApplication

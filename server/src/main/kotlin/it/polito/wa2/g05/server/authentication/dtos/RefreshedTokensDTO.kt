@@ -1,7 +1,6 @@
 package it.polito.wa2.g05.server.authentication.dtos
 
-data class UserDTO(
+data class RefreshedTokensDTO(
     val accessToken: String,
-    val email: String,
-    val username: String
+    val refreshToken: String
 )

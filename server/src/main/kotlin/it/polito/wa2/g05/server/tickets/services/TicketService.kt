@@ -13,8 +13,7 @@ interface TicketService {
     fun managerCloseTicket(id: Long): TicketDTO
     fun reopenTicket(id: Long, token: String): TicketDTO
     fun expertResolveTicket(id: Long, token: String): TicketDTO
-
     fun managerResolveTicket(id: Long): TicketDTO
     fun getTicket(id: Long): TicketDTO
-    fun getAllTicketsByProductId(productId: Long): List<TicketDTO>
+    fun getAllTicketsByProductId(productEan: String): List<TicketDTO>
 }

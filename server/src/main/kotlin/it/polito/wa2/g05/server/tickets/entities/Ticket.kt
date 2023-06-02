@@ -12,14 +12,14 @@ import java.util.Date
 @Table(name = "tickets")
 class Ticket(
     @Enumerated(EnumType.STRING)
-    var status: TicketStatus? = null,
+    var status: TicketStatus,
 
-    var title: String = "",
-    var description: String = "",
+    var title: String,
+    var description: String,
 
     @ManyToOne
     @JoinColumn(name = "customer_id" , referencedColumnName = "id")
-    var customer: Profile? = null,
+    var customer: Profile,
 
     @ManyToOne
     @JoinColumn(name="expert_id", referencedColumnName = "id")
@@ -31,16 +31,16 @@ class Ticket(
 
     @ManyToOne
     @JoinColumn(name="product_id" , referencedColumnName = "id")
-    var product: Product? = null,
+    var product: Product,
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name="created_date")
-    var createdDate: Date? = null,
+    var createdDate: Date,
 
     @Column(name="closed_date")
     var closedDate: Date? = null,
 
     @ManyToOne
     @JoinColumn(name="specialization_id" , referencedColumnName = "id")
-    var specialization: Specialization? = null
+    var specialization: Specialization
 ): SerialIdEntity()

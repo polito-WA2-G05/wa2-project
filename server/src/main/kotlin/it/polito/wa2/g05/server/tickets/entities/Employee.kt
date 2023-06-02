@@ -14,7 +14,7 @@ import java.util.UUID
 @Table(name="employees")
 class Employee (
     @Id
-    override var id: UUID? = null,
+    override var id: UUID?,
 
     @ManyToMany
     @JoinTable(

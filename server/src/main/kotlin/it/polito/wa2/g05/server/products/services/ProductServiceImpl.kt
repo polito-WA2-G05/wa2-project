@@ -10,14 +10,16 @@ import org.springframework.stereotype.Service
 
 @Observed
 @Service
-class ProductServiceImpl(private val productRepository: ProductRepository): ProductService {
+class ProductServiceImpl(private val productRepository: ProductRepository) : ProductService {
+
     private val log = LoggerFactory.getLogger("ProductServiceImpl")
+
     override fun getAll(): List<ProductDTO> =
         productRepository.findAll().map { it.toDTO() }
 
     override fun getProduct(ean: String): ProductDTO =
         productRepository.findByEan(ean).orElseThrow {
-            log.error("Product $ean not found error")
-            throw ProductNotFoundException("Product with ean equals to $ean not found")
+            log.error("Product with ean = $ean not found")
+            throw ProductNotFoundException(ean)
         }.toDTO()
 }

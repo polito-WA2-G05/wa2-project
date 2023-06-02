@@ -8,7 +8,7 @@ import java.util.Optional
 import java.util.UUID
 
 @Repository
-interface ProfileRepository: JpaRepository<Profile, UUID> {
+interface ProfileRepository : JpaRepository<Profile, UUID> {
     fun findByEmail(@Param("email") email: String): Optional<Profile>
 }
 

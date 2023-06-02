@@ -11,18 +11,18 @@ import java.util.Date
 
 data class TicketDTO(
     val id : Long?,
-    val status: TicketStatus?,
+    val status: TicketStatus,
     val title: String,
     val description: String,
-    val customer: ProfileDTO?,
+    val customer: ProfileDTO,
     val expert: EmployeeDTO?,
     val priorityLevel: PriorityLevel?,
-    val product: ProductDTO?,
-    val createdDate: Date?,
+    val product: ProductDTO,
+    val createdDate: Date,
     val closedDate: Date?,
-    val specialization: SpecializationDTO?
+    val specialization: SpecializationDTO
 )
 
 fun Ticket.toDTO(): TicketDTO {
-    return TicketDTO(id, status, title, description, customer?.toDTO(), expert?.toDTO(), priorityLevel , product?.toDTO(), createdDate, closedDate, specialization?.toDTO())
+    return TicketDTO(id, status, title, description, customer.toDTO(), expert?.toDTO(), priorityLevel , product.toDTO(), createdDate, closedDate, specialization.toDTO())
 }

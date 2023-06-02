@@ -1,6 +1,5 @@
 package it.polito.wa2.g05.server.tickets.entities
 
-import it.polito.wa2.g05.server.utils.EntityBase
 import it.polito.wa2.g05.server.tickets.utils.TicketStatus
 import it.polito.wa2.g05.server.utils.SerialIdEntity
 import jakarta.persistence.*
@@ -15,14 +14,14 @@ class Change(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "to_status")
-    var toStatus: TicketStatus? = null,
+    var toStatus: TicketStatus,
 
     @Temporal(TemporalType.TIMESTAMP)
-    var timestamp: Date? = null,
+    var timestamp: Date,
 
     @ManyToOne
     @JoinColumn(name = "ticket_id", referencedColumnName = "id")
-    var ticket: Ticket? = null,
+    var ticket: Ticket,
 
     @ManyToOne
     @JoinColumn(name = "expert_id", referencedColumnName = "id")

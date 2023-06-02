@@ -1,7 +1,8 @@
 package it.polito.wa2.g05.server.tickets.services
 
 import io.micrometer.observation.annotation.Observed
-import it.polito.wa2.g05.server.authentication.security.JwtAuthConverter
+import it.polito.wa2.g05.server.authentication.security.jwt.JwtDecoder
+import it.polito.wa2.g05.server.authentication.utils.UserDetails
 import it.polito.wa2.g05.server.products.ProductNotFoundException
 import it.polito.wa2.g05.server.products.repositories.ProductRepository
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
@@ -34,36 +35,36 @@ class TicketServiceImpl(
     private val employeeRepository: EmployeeRepository,
     private val changeRepository: ChangeRepository,
     private val specializationRepository: SpecializationRepository,
-    private val jwtAuthConverter: JwtAuthConverter
+    private val jwtDecoder: JwtDecoder
 ) : TicketService {
 
     private val log = LoggerFactory.getLogger("TicketServiceImpl")
 
     override fun createTicket(data: CreateTicketFormDTO, token: String): TicketDTO {
-        val customerId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
         val customer = profileRepository.findById(customerId)
             .orElseThrow {
                 log.error("Profile with ${customerId} not found")
-                ProfileNotFoundException("Profile ${customerId} not found")
+                ProfileNotFoundException(customerId.toString())
             }
 
-        val product = productRepository.findByEan(data.productEAN!!)
+        val product = productRepository.findByEan(data.productEan)
             .orElseThrow {
-                log.error("Profile with ${data.productEAN} not found")
-                ProductNotFoundException("Product with ${data.productEAN} not found")
+                log.error("Product with ${data.productEan} not found")
+                ProductNotFoundException(data.productEan)
             }
 
-        val specialization = specializationRepository.findById(data.specializationId!!)
+        val specialization = specializationRepository.findById(data.specializationId)
             .orElseThrow {
                 log.error("Specialization ${data.specializationId} not found")
-                SpecializationNotFoundException("Specialization ${data.specializationId} not found")
+                SpecializationNotFoundException(data.specializationId)
             }
 
         val ticket = ticketRepository.save(
             Ticket(
                 TicketStatus.OPEN,
-                data.title!!,
-                data.description!!,
+                data.title,
+                data.description,
                 customer,
                 null,
                 null,
@@ -87,17 +88,17 @@ class TicketServiceImpl(
 
     @Transactional
     override fun cancelTicket(id: Long, token: String): TicketDTO {
-        val customerId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
 
         val customer = profileRepository.findById(customerId)
             .orElseThrow {
                 log.error("Profile $customerId not found")
-                ProfileNotFoundException("Profile $customerId not found")
+                ProfileNotFoundException(customerId.toString())
             }
 
         if (!ticketRepository.existsById(id)) {
             log.error("Ticket $id not found")
-            throw TicketNotFoundException("Ticked $id not found")
+            throw TicketNotFoundException(id)
         }
 
         if (ticketRepository.getCustomer(id) != customer) {
@@ -125,17 +126,17 @@ class TicketServiceImpl(
 
     @Transactional
     override fun expertCloseTicket(id: Long, token: String): TicketDTO {
-        val expertId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+        val expertId = UserDetails(jwtDecoder.decode(token)).uuid
 
         val expert = employeeRepository.findById(expertId)
             .orElseThrow {
                 log.error("Expert $expertId not found")
-                EmployeeNotFoundException("Expert $expertId not found")
+                EmployeeNotFoundException(expertId)
             }
 
         if (!ticketRepository.existsById(id)) {
             log.error("Ticked $id not found")
-            throw TicketNotFoundException("Ticked $id not found")
+            throw TicketNotFoundException(id)
         }
 
         if (ticketRepository.getExpert(id) != expert) {
@@ -160,7 +161,7 @@ class TicketServiceImpl(
     override fun managerCloseTicket(id: Long): TicketDTO {
         if (!ticketRepository.existsById(id)) {
             log.error("Ticked $id not found")
-            throw TicketNotFoundException("Ticked $id not found")
+            throw TicketNotFoundException(id)
         }
         val currentStatus = ticketRepository.getStatus(id)
 
@@ -178,17 +179,17 @@ class TicketServiceImpl(
 
     @Transactional
     override fun reopenTicket(id: Long, token: String): TicketDTO {
-        val customerId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
 
         val customer = profileRepository.findById(customerId)
             .orElseThrow {
                 log.error("Profile $customerId not found")
-                ProfileNotFoundException("Profile $customerId not found")
+                ProfileNotFoundException(customerId.toString())
             }
 
         if (!ticketRepository.existsById(id)) {
             log.error("Ticked $id not found")
-            throw TicketNotFoundException("Ticked $id not found")
+            throw TicketNotFoundException(id)
         }
 
         if (ticketRepository.getCustomer(id) != customer) {
@@ -219,12 +220,17 @@ class TicketServiceImpl(
 
     @Transactional
     override fun startTicket(id: Long, data: StartTicketFormDTO): TicketDTO {
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
+
         val currentStatus = ticketRepository.getStatus(id)
 
         if (currentStatus == TicketStatus.OPEN || currentStatus == TicketStatus.REOPENED) {
             if (ticketRepository.updateStatus(id, TicketStatus.IN_PROGRESS) == 0) {
                 log.error("Ticket $id not found")
-                throw TicketNotFoundException("Ticket $id not found")
+                throw TicketNotFoundException(id)
             }
 
             val specialization = ticketRepository.getSpecialization(id)
@@ -240,7 +246,7 @@ class TicketServiceImpl(
                 }
             }
 
-            ticketRepository.startTicket(id, PriorityLevel.values()[data.priorityLevel!!], selectedEmployee)
+            ticketRepository.startTicket(id, PriorityLevel.values()[data.priorityLevel], selectedEmployee)
             employeeRepository.increaseIsWorkingOn(selectedEmployee.id!!)
 
             val ticket = ticketRepository.findById(id).get()
@@ -256,17 +262,17 @@ class TicketServiceImpl(
 
     @Transactional
     override fun stopTicket(id: Long, token: String): TicketDTO {
-        val expertId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+        val expertId = UserDetails(jwtDecoder.decode(token)).uuid
 
         val expert = employeeRepository.findById(expertId)
             .orElseThrow {
                 log.error("Expert $expertId not found")
-                EmployeeNotFoundException("Expert $expertId not found")
+                EmployeeNotFoundException(expertId)
             }
 
         if (!ticketRepository.existsById(id)) {
             log.error("Ticked $id not found")
-            throw TicketNotFoundException("Ticked $id not found")
+            throw TicketNotFoundException(id)
         }
         if (ticketRepository.getExpert(id) != expert) {
             log.error("You are not allowed to perform this action")
@@ -292,7 +298,7 @@ class TicketServiceImpl(
 
         if (!ticketRepository.existsById(id)) {
             log.error("Ticked $id not found")
-            throw TicketNotFoundException("Ticked $id not found")
+            throw TicketNotFoundException(id)
         }
 
         val currentStatus = ticketRepository.getStatus(id)
@@ -320,17 +326,17 @@ class TicketServiceImpl(
 
     @Transactional
     override fun expertResolveTicket(id: Long, token: String): TicketDTO {
-        val expertId = jwtAuthConverter.getUUID(token.replace("Bearer ", ""))
+        val expertId = UserDetails(jwtDecoder.decode(token)).uuid
 
         val expert = employeeRepository.findById(expertId)
             .orElseThrow {
                 log.error("Expert $expertId not found")
-                EmployeeNotFoundException("Expert $expertId not found")
+                EmployeeNotFoundException(expertId)
             }
 
         if (!ticketRepository.existsById(id)) {
             log.error("Ticked $id not found")
-            throw TicketNotFoundException("Ticked $id not found")
+            throw TicketNotFoundException(id)
         }
 
         if (ticketRepository.getExpert(id) != expert) {
@@ -363,14 +369,14 @@ class TicketServiceImpl(
     override fun getTicket(id: Long): TicketDTO =
         ticketRepository.findById(id).orElseThrow {
             log.error("Ticket $id not found")
-            throw TicketNotFoundException("Ticket $id not found")
+            throw TicketNotFoundException(id)
         }.toDTO()
 
 
-    override fun getAllTicketsByProductId(productId: Long): List<TicketDTO> {
-        val product = productRepository.findById(productId).orElseThrow {
-            log.error("Product with id $productId not found")
-            throw ProductNotFoundException("Product with id $productId not found")
+    override fun getAllTicketsByProductId(productEan: String): List<TicketDTO> {
+        val product = productRepository.findByEan(productEan).orElseThrow {
+            log.error("Product with ean $productEan not found")
+            throw ProductNotFoundException(productEan)
         }
 
         return ticketRepository.findAllByProduct(product).map { it.toDTO() }

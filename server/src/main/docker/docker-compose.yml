@@ -17,6 +17,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - KEYCLOAK_HOSTNAME=g05-keycloak
+      - LOKI_ENABLED=true
+      - MANAGEMENT_TRACING_ENABLED=true
     env_file:
       - ./config/.env.docker
 

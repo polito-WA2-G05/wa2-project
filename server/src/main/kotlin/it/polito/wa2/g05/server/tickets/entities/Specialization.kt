@@ -6,6 +6,6 @@ import jakarta.persistence.*
 @Entity
 @Table(name="specializations")
 class Specialization(
-    var name: String = "",
+    var name: String,
 ): SerialIdEntity()
 

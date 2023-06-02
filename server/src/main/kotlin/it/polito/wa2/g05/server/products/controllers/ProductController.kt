@@ -7,23 +7,25 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.slf4j.LoggerFactory;
+import org.slf4j.LoggerFactory
 
 @Observed
 @RestController
 @RequestMapping("/api/public/products")
 class ProductController(private val productService: ProductService) {
 
-    val log = LoggerFactory.getLogger("ProductController")
+    private val log = LoggerFactory.getLogger("ProductController")
 
-    // /api/public/products
+    /* GET /api/public/products */
+
     @GetMapping
     fun getAll(): List<ProductDTO> {
         log.info("Getting the list of all products")
         return productService.getAll()
     }
 
-    // /api/public/products/{ean}
+    /* GET /api/public/products/{ean} */
+
     @GetMapping("/{ean}")
     fun getProduct(@PathVariable("ean") ean: String): ProductDTO {
         log.info("Getting the product with ean = $ean")

@@ -1,5 +1,6 @@
 package it.polito.wa2.g05.server.utils
 
+import jakarta.persistence.Id
 import jakarta.persistence.MappedSuperclass
 import org.springframework.data.util.ProxyUtils
 import java.io.Serializable

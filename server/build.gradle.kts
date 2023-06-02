@@ -52,6 +52,7 @@ dependencies {
     implementation ("io.zipkin.reporter2:zipkin-reporter-brave")
     // send logs by log Appender through URL
     implementation ("com.github.loki4j:loki-logback-appender:1.4.0-rc2")
+    implementation("org.codehaus.janino:janino")
 
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.2")

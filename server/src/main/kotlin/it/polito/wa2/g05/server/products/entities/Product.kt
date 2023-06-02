@@ -5,10 +5,10 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Table
 
 @Entity
-@Table(name="products")
-class Product (
-    var ean: String = "",
-    var name: String = "",
-    var brand: String = ""
-): SerialIdEntity()
+@Table(name = "products")
+class Product(
+    val ean: String,
+    val name: String,
+    val brand: String
+) : SerialIdEntity()
 
