@@ -2,7 +2,7 @@
 import {useEffect, useState} from 'react'
 import {useLocation, useParams, Navigate} from "react-router-dom";
 import {Spinner} from "react-bootstrap";
-import {Info} from "../components"
+import {ProductInfo} from "../components"
 
 // Services
 import api from '../services/api'
@@ -41,7 +41,7 @@ const Products = () => {
                     product ? (
                         <>
                             <h2 className={"mb-4 fw-bold text-center"}>Product Information</h2>
-                            <Info entity={product}/>
+                            <ProductInfo entity={product}/>
                         </>
 
                     ) : <Navigate to={"/"} replace/>

@@ -1,7 +1,7 @@
 import {useLocation, useParams, Navigate, useNavigate} from "react-router-dom";
 // Imports
 import {useEffect, useState} from "react";
-import {Info} from "../components"
+// import {ProfileInfo} from "../components"
 
 // Components
 import {Button, Spinner} from "react-bootstrap";
@@ -49,7 +49,8 @@ const Profile = () => {
                 {profile ? (
                     <>
                         <h2 className={"mb-4 fw-bold text-center"}>Profile Informations</h2>
-                        <Info entity={profile}/>
+                        {/*<ProfileInfo entity={profile}/>*/}
+
                         <Button onClick={handleNavigate} className={"mt-4"}>
                             Update profile
                         </Button>

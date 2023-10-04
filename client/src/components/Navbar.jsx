@@ -2,11 +2,14 @@
 import React from 'react'
 import {Navbar as NavigationBar, Nav, Button} from "react-bootstrap";
 import {Link} from 'react-router-dom'
+import {useLocation} from "react-router-dom";
 
 // Styles
 import {ImHome} from 'react-icons/im'
 
 const Navbar = () => {
+    const location = useLocation();
+
     return (
         <NavigationBar className={"p-4 w-full"} bg="light" variant="dark" sticky="top">
             <Nav className="d-flex justify-content-between align-items-center w-100">
@@ -20,11 +23,14 @@ const Navbar = () => {
                             <p className="my-auto">Show all products</p>
                         </Button>
                     </Link>
-                    <Link to={'/profiles'}>
+
+                    {location.pathname !== '' &&
+                    <Link to={'/login'}>
                         <Button className="fw-semibold">
-                            <p className="my-auto">Profile</p>
+                            <p className="my-auto">Login</p>
                         </Button>
                     </Link>
+                    }
                 </div>
             </Nav>
         </NavigationBar>

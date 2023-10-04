@@ -1,4 +1,4 @@
-const Info = ({entity}) => {
+const ProductInfo = ({entity}) => {
     return (
         <div className="d-flex align-items-center flex-column bg-light p-3 rounded-3">
             {Object.entries(entity).map(([field, value], idx) => (
@@ -11,4 +11,4 @@ const Info = ({entity}) => {
     )
 }
 
-export default Info
+export default ProductInfo

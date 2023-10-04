@@ -19,7 +19,7 @@ const SearchProfile = () => {
     function handleSubmit(e) {
         e.preventDefault()
         api.getProfileByEmail(email)
-            .then((data) => navigate(`/profiles/${data.email}`, {
+            .then((data) => navigate(`profiles/${data.email}`, {
                 replace: true,
                 state: {profile: data}
             }))
