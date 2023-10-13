@@ -12,11 +12,9 @@ import it.polito.wa2.g05.server.tickets.dtos.CreateTicketFormDTO
 import it.polito.wa2.g05.server.tickets.dtos.StartTicketFormDTO
 import it.polito.wa2.g05.server.tickets.dtos.toDTO
 import it.polito.wa2.g05.server.tickets.entities.Employee
-import it.polito.wa2.g05.server.tickets.entities.Specialization
 import it.polito.wa2.g05.server.tickets.entities.Ticket
 import it.polito.wa2.g05.server.tickets.repositories.ChangeRepository
 import it.polito.wa2.g05.server.tickets.repositories.EmployeeRepository
-import it.polito.wa2.g05.server.tickets.repositories.SpecializationRepository
 import it.polito.wa2.g05.server.tickets.repositories.TicketRepository
 import it.polito.wa2.g05.server.tickets.services.TicketService
 import it.polito.wa2.g05.server.tickets.utils.PriorityLevel

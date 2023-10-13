@@ -8,12 +8,12 @@ import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
 import it.polito.wa2.g05.server.profiles.dtos.toDTO
 import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
+import it.polito.wa2.g05.server.specializations.repositories.SpecializationRepository
 import it.polito.wa2.g05.server.tickets.EmployeeNotFoundException
 import it.polito.wa2.g05.server.tickets.SpecializationNotFoundException
 import it.polito.wa2.g05.server.tickets.dtos.toDTO
 import it.polito.wa2.g05.server.tickets.entities.Employee
 import it.polito.wa2.g05.server.tickets.repositories.EmployeeRepository
-import it.polito.wa2.g05.server.tickets.repositories.SpecializationRepository
 import org.springframework.stereotype.Service
 import org.springframework.http.ResponseEntity
 

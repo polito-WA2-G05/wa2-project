@@ -1,5 +1,7 @@
 package it.polito.wa2.g05.server.tickets.dtos
 
+import it.polito.wa2.g05.server.specializations.dtos.SpecializationDTO
+import it.polito.wa2.g05.server.specializations.dtos.toDTO
 import it.polito.wa2.g05.server.tickets.entities.Employee
 
 data class EmployeeDTO(

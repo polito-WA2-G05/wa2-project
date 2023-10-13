@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+
 @Observed
 @RestController
 @RequestMapping("/api")
@@ -103,19 +104,51 @@ class TicketControl(private val ticketService: TicketService) {
         return ticketService.managerResolveTicket(id)
     }
 
-    /* GET /api/authenticated/tickets/{id} */
+    /* GET /api/manager/tickets/{id} */
 
-    @GetMapping("/authenticated/tickets/{id}")
-    fun getTicket(@PathVariable id: Long): TicketDTO {
+    @GetMapping("/manager/tickets/{id}")
+    fun managerGetTicket(@PathVariable id: Long): TicketDTO {
         log.info("Getting ticket with id:$id")
-        return ticketService.getTicket(id)
+        return ticketService.managerGetTicket(id)
+    }
+
+    /* GET /api/customer/tickets/{id} */
+
+    @GetMapping("/customer/tickets/{id}")
+    fun customerGetTicket(@RequestHeader("Authorization") token: String, @PathVariable id: Long): TicketDTO {
+        log.info("Getting ticket with id:$id")
+        return ticketService.customerGetTicket(id, token)
+    }
+
+    /* GET /api/expert/tickets/{id} */
+
+    @GetMapping("/expert/tickets/{id}")
+    fun expertGetTicket(@RequestHeader("Authorization") token: String, @PathVariable id: Long): TicketDTO {
+        log.info("Getting ticket with id:$id")
+        return ticketService.expertGetTicket(id, token)
     }
 
     /* GET /api/manager/tickets?product={producEan} */
 
     @GetMapping("/manager/tickets")
-    fun getAllTicketsByProduct(@RequestParam("product") productEan: String) : List<TicketDTO> {
+    fun managerGetTickets(@RequestParam("product", required = false) productEan: String?) : List<TicketDTO> {
         log.info("Manager retrieving all tickets")
-        return ticketService.getAllTicketsByProductId(productEan)
+        return ticketService.managerGetTickets(productEan)
+    }
+
+    /* GET /api/customer/tickets?product={productEan} */
+
+    @GetMapping("/customer/tickets")
+    fun customerGetTickets(@RequestHeader("Authorization") token: String, @RequestParam("product", required = false) productEan: String?): List<TicketDTO> {
+        log.info("Customer retrieving tickets")
+        return ticketService.customerGetTickets(token, productEan)
+    }
+
+    /* GET /api/expert/tickets?product={productEan} */
+
+    @GetMapping("/expert/tickets")
+    fun expertGetTickets(@RequestHeader("Authorization") token: String, @RequestParam("product", required = false) productEan: String?): List<TicketDTO> {
+        log.info("Expert retrieving all tickets")
+        return ticketService.expertGetTickets(token, productEan)
     }
 }
