@@ -1,3 +1,4 @@
+// Imports
 import { toast } from "react-toastify";
 
 const useNotification = () => {

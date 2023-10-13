@@ -1,44 +1,88 @@
 // Imports
-import React, {useState} from 'react';
-import {Button, Form} from 'react-bootstrap';
-import {useNavigate} from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button, Spinner, Col } from "react-bootstrap";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
+
+import { InputField } from "@components/forms";
 
 // Services
-import api from '../services/api';
+import api from "@services";
 
 // Hooks
-import useNotification from "../hooks/useNotification";
+import { useNotification } from "@hooks";
 
 const Home = () => {
-    const navigate = useNavigate()
-    const notify = useNotification()
-    const [ean, setEan] = useState("")
+	const [loading, setLoading] = useState(false);
+	const navigate = useNavigate();
+	const notify = useNotification();
 
-    function handleSubmit(e) {
-        e.preventDefault()
-        api.getProductByEAN(ean)
-            .then((data) => navigate(`/products/${data.ean}`, {
-                replace: true,
-                state: {product: data}
-            }))
-            .catch((error) => notify.error(error.detail))
-    }
+	const SearchProductSchema = Yup.object().shape({
+		ean: Yup.string().required("Product EAN is mandatory"),
+	});
 
-    return (
-        <>
-            <h1 className="mb-5 fs-1 fw-bold text-center">Search your product</h1>
-            <Form onSubmit={handleSubmit} className={"d-flex align-items-end justify-content-center"}>
-                <Form.Group controlId="search-ean">
-                    <Form.Label>Search by EAN</Form.Label>
-                    <Form.Control type="text" placeholder="Enter EAN"
-                                  value={ean} onChange={(e) => setEan(e.target.value)}/>
-                </Form.Group>
-                <Button className={"ms-3"} variant="primary" type="submit" disabled={!ean}>
-                    Search
-                </Button>
-            </Form>
-        </>
-    );
+	function handleSubmit(values) {
+		setLoading(true);
+		const { ean } = values;
+		api.product
+			.getProductByEAN(ean)
+			.then((data) =>
+				navigate(`/products/${data.ean}`, {
+					replace: true,
+					state: { product: data },
+				})
+			)
+			.catch((err) => notify.error(err.detail ?? err))
+			.finally(() => setLoading(false));
+	}
+
+	return (
+		<div>
+			<h1 className="mb-5 fs-1 fw-bold text-center">Search product</h1>
+			<Formik
+				initialValues={{ ean: "" }}
+				validationSchema={SearchProductSchema}
+				onSubmit={handleSubmit}
+			>
+				{({ touched, isValid }) => {
+					const disableSubmit = !touched.ean || !isValid || loading;
+					return (
+						<Form>
+							<div className="d-flex flex-column justify-content-center align-items-center">
+								<Col xs={12} lg={3}>
+									<InputField
+										id={"search-ean"}
+										type={"text"}
+										name={"ean"}
+										placeholder={"Product EAN"}
+									/>
+									<Button
+										variant="primary"
+										type="submit"
+										className="py-2 px-5 rounded-3 fw-semibold"
+										disabled={disableSubmit}
+									>
+										{loading && (
+											<Spinner
+												animation="grow"
+												size="sm"
+												as="span"
+												role="status"
+												aria-hidden="true"
+												className="me-2"
+											/>
+										)}
+										Search
+									</Button>
+								</Col>
+							</div>
+						</Form>
+					);
+				}}
+			</Formik>
+		</div>
+	);
 };
 
 export default Home;
