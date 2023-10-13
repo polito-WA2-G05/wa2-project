@@ -17,7 +17,7 @@ import it.polito.wa2.g05.server.tickets.entities.Employee
 import it.polito.wa2.g05.server.tickets.entities.Ticket
 import it.polito.wa2.g05.server.tickets.repositories.ChangeRepository
 import it.polito.wa2.g05.server.tickets.repositories.EmployeeRepository
-import it.polito.wa2.g05.server.tickets.repositories.SpecializationRepository
+import it.polito.wa2.g05.server.specializations.repositories.SpecializationRepository
 import it.polito.wa2.g05.server.tickets.repositories.TicketRepository
 import it.polito.wa2.g05.server.tickets.utils.PriorityLevel
 import org.springframework.stereotype.Service
@@ -350,6 +350,7 @@ class TicketServiceImpl(
             log.error("Status can't be set to RESOLVED from $currentStatus")
             throw TicketStatusNotValidException("Status can't be set to RESOLVED from $currentStatus")
         }
+
         ticketRepository.updateStatus(id, TicketStatus.RESOLVED, Date())
         val ticket = ticketRepository.findById(id).get()
 
@@ -366,19 +367,109 @@ class TicketServiceImpl(
         return ticket.toDTO()
     }
 
-    override fun getTicket(id: Long): TicketDTO =
+    override fun customerGetTicket(id: Long, token: String): TicketDTO {
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
+
+        val customer = profileRepository.findById(customerId)
+            .orElseThrow {
+                log.error("Profile $customerId not found")
+                ProfileNotFoundException(customerId.toString())
+            }
+
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
+
+        if (ticketRepository.getCustomer(id) != customer) {
+            log.error("You are not allowed to perform this action")
+            throw ForbiddenActionException("You are not allowed to perform this action")
+        }
+
+        return ticketRepository.findById(id).get().toDTO()
+    }
+
+    override  fun expertGetTicket(id: Long, token: String): TicketDTO {
+        val expertId = UserDetails(jwtDecoder.decode(token)).uuid
+
+        val expert = employeeRepository.findById(expertId)
+            .orElseThrow {
+                log.error("Expert $expertId not found")
+                EmployeeNotFoundException(expertId)
+            }
+
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
+
+        if (ticketRepository.getExpert(id) != expert) {
+            log.error("You are not allowed to perform this action")
+            throw ForbiddenActionException("You are not allowed to perform this action")
+        }
+
+        return ticketRepository.findById(id).get().toDTO()
+    }
+
+    override fun managerGetTicket(id: Long): TicketDTO =
         ticketRepository.findById(id).orElseThrow {
             log.error("Ticket $id not found")
             throw TicketNotFoundException(id)
         }.toDTO()
 
 
-    override fun getAllTicketsByProductId(productEan: String): List<TicketDTO> {
-        val product = productRepository.findByEan(productEan).orElseThrow {
-            log.error("Product with ean $productEan not found")
-            throw ProductNotFoundException(productEan)
-        }
+    override fun managerGetTickets(productEan: String?): List<TicketDTO> {
+        return if (productEan.isNullOrBlank())
+            ticketRepository.findAll().map { it.toDTO() }
+        else {
+            val product = productRepository.findByEan(productEan).orElseThrow {
+                log.error("Product with ean $productEan not found")
+                throw ProductNotFoundException(productEan)
+            }
 
-        return ticketRepository.findAllByProduct(product).map { it.toDTO() }
+            ticketRepository.findAllByProduct(product).map { it.toDTO() }
+        }
+    }
+
+    override fun expertGetTickets(token: String, productEan: String?): List<TicketDTO> {
+        val expertId = UserDetails(jwtDecoder.decode(token)).uuid
+
+        val expert = employeeRepository.findById(expertId)
+            .orElseThrow {
+                log.error("Expert $expertId not found")
+                EmployeeNotFoundException(expertId)
+            }
+
+        return if (productEan.isNullOrBlank())
+            ticketRepository.findAllByExpert(expert).map { it.toDTO() }
+        else {
+            val product = productRepository.findByEan(productEan).orElseThrow {
+                log.error("Product with ean $productEan not found")
+                throw ProductNotFoundException(productEan)
+            }
+
+            ticketRepository.findAllByProductAndExpert(product, expert).map { it.toDTO() }
+        }
+    }
+
+    override fun customerGetTickets(token: String, productEan: String?): List<TicketDTO> {
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
+
+        val customer = profileRepository.findById(customerId)
+            .orElseThrow {
+                log.error("Profile $customerId not found")
+                ProfileNotFoundException(customerId.toString())
+            }
+
+        return if (productEan.isNullOrBlank())
+            ticketRepository.findAllByCustomer(customer).map { it.toDTO() }
+        else {
+            val product = productRepository.findByEan(productEan).orElseThrow {
+                log.error("Product with ean $productEan not found")
+                throw ProductNotFoundException(productEan)
+            }
+
+            ticketRepository.findAllByProductAndCustomer(product, customer).map { it.toDTO() }
+        }
     }
 }
