@@ -61,6 +61,7 @@ const Navbar = () => {
                                 className='align-items-center d-flex'
                             >
                                 <Dropdown.Item as="button" onClick={() => navigate('/products', { replace: true })}>All products</Dropdown.Item>
+                                <Dropdown.Item as="button" onClick={() => navigate('/tickets', { replace: true })}>All Ticket</Dropdown.Item>
                                 <Dropdown.Item as="button" onClick={() => navigate('/tickets/search', { replace: true })}>Search Ticket</Dropdown.Item>
                                 <Dropdown.Divider />
                                 <Dropdown.ItemText as={"small"} className='mb-2'>

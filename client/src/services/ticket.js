@@ -1,10 +1,10 @@
 import req from "./config";
 
 const ticket = {
-	getTicket: (ticketId) => {
+	getTicket: (role, ticketId) => {
 		return new Promise((resolve, reject) => {
 			req
-				.get(`/authenticated/tickets/${ticketId}`)
+				.get(`/${role}/tickets/${ticketId}`)
 				.then((res) => resolve(res.data))
 				.catch((err) => reject(err.response.data));
 		});
@@ -18,13 +18,14 @@ const ticket = {
 				.catch((err) => reject(err.response.data));
 		});
 	},
-	
-	getTicketByProductEAN: (ean) => {
-		return new Promise((resolve, reject) => {
-			req.get(`/manager/tickets?product=${ean}`)
-				.then((res) => resolve(res.data))
-				.catch((err) => reject(err.response.data));
-		});
+
+	getTickets: (role, product) => {
+		// GET /api/{role}/tickets[?product={product}] 
+		return new Promise ((resolve, reject) => {
+			req.get(`/${role}/tickets${!product ? "": "?product="+product}`)
+			.then((res) => resolve(res.data))
+			.catch((err) => reject(err.response.data));
+		})
 	}
 };
 

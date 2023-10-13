@@ -9,6 +9,8 @@ import * as Yup from "yup";
 import { InputField } from "@components/forms";
 import { SwitchButton } from "@components";
 
+import {useSessionStorage} from "@hooks"
+
 // Services
 import api from "@services";
 
@@ -18,6 +20,7 @@ import { useNotification } from "@hooks";
 const SearchTicket = () => {
 	const [loading, setLoading] = useState(false);
 	const [searchByProduct, setSearchByProduct] = useState(false);
+	const {session} = useSessionStorage()
 
 	const navigate = useNavigate();
 	const notify = useNotification();
@@ -38,10 +41,13 @@ const SearchTicket = () => {
 	const handleSubmit = (values) => {
 		setLoading(true);
 		const { ticketId, productEan } = values;
-		const apiHandler = !searchByProduct ? api.ticket.getTicket : api.ticket.getTicketByProductEAN
-
-		apiHandler(!searchByProduct ? ticketId : productEan)
-			.then((ticket) => { navigate(`/tickets/${ticket.id}`, { replace: true, state: { ticket } }) })
+		const apiHandler = !searchByProduct ? api.ticket.getTicket : api.ticket.getTickets
+		
+		apiHandler(session.details.authorities[0].toLowerCase(), !searchByProduct ? ticketId : productEan )
+			.then((res) => { 
+				// TODO: Handle this
+				!searchByProduct ? navigate(`/tickets/${res.id}`) : 
+				navigate(`/tickets?product=${productEan}`, { replace: true, state: { res } }) })
 			.catch((err) => notify.error(err.detail ?? err))
 			.finally(() => setLoading(false))
 	}

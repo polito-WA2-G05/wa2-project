@@ -6,6 +6,8 @@ import { Spinner, Card, Button } from "react-bootstrap";
 // Components
 import { InfoCard } from "@components";
 
+import {useSessionStorage} from "@hooks"
+
 // Services
 import api from "@services";
 
@@ -81,6 +83,7 @@ const TicketProductInfo = ({ product, ticketId }) => (
 );
 
 const Ticket = () => {
+	const {session} = useSessionStorage()
 	const { ticketId } = useParams();
 	const location = useLocation();
 	const { state } = location;
@@ -95,7 +98,7 @@ const Ticket = () => {
 		if (loading) {
 			if (!state?.ticket) {
 				api.ticket
-					.getTicket(ticketId)
+					.getTicket(session.details.authorities[0].toLowerCase(), ticketId)
 					.then((ticket) => setTicket(ticket))
 					.catch((err) => {
 						setTicket(null);

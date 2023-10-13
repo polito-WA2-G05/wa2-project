@@ -12,6 +12,7 @@ import {
 	CreateExpert,
 	EditProfile,
 	SearchTicket,
+	Tickets,
 	Ticket,
 	CreateTicket
 } from "@views";
@@ -34,6 +35,7 @@ function App() {
 				<Route path="/products" element={<Products />} />
 				<Route path="/products/:ean" element={<Product />} />
 				<Route element={<ProtectedRoute />}>
+					<Route path="/tickets" element={<Tickets />} />
 					<Route path="/tickets/search" element={<SearchTicket />} />
 					<Route path="/tickets/:ticketId" element={<Ticket />} />
 					<Route element={<RoleRoute roles={["Customer", "Expert"]} />}>
