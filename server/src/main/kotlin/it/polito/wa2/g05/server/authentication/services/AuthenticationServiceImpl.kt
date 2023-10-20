@@ -42,8 +42,9 @@ class AuthenticationServiceImpl(
         }.toMutableSet()
 
         val uuid = keycloakService.createUser(data.email, data.username, data.password, Role.EXPERT)
+        val username = keycloakService.getUser(uuid).username
 
-        val employee = Employee(uuid, specializations)
+        val employee = Employee(uuid, username, specializations)
 
         employeeRepository.save(employee)
 

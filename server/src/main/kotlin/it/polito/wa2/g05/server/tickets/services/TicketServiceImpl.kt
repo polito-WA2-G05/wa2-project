@@ -1,25 +1,28 @@
 package it.polito.wa2.g05.server.tickets.services
 
 import io.micrometer.observation.annotation.Observed
+import it.polito.wa2.g05.server.authentication.dtos.ExpertDetailsDTO
 import it.polito.wa2.g05.server.authentication.security.jwt.JwtDecoder
+import it.polito.wa2.g05.server.authentication.security.keycloak.KeycloakService
+import it.polito.wa2.g05.server.authentication.utils.Role
 import it.polito.wa2.g05.server.authentication.utils.UserDetails
 import it.polito.wa2.g05.server.products.ProductNotFoundException
 import it.polito.wa2.g05.server.products.repositories.ProductRepository
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
 import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
 import it.polito.wa2.g05.server.tickets.*
-import it.polito.wa2.g05.server.tickets.dtos.CreateTicketFormDTO
-import it.polito.wa2.g05.server.tickets.dtos.StartTicketFormDTO
-import it.polito.wa2.g05.server.tickets.dtos.TicketDTO
-import it.polito.wa2.g05.server.tickets.dtos.toDTO
 import it.polito.wa2.g05.server.tickets.entities.Change
 import it.polito.wa2.g05.server.tickets.entities.Employee
 import it.polito.wa2.g05.server.tickets.entities.Ticket
 import it.polito.wa2.g05.server.tickets.repositories.ChangeRepository
 import it.polito.wa2.g05.server.tickets.repositories.EmployeeRepository
 import it.polito.wa2.g05.server.specializations.repositories.SpecializationRepository
+import it.polito.wa2.g05.server.tickets.dtos.*
+import it.polito.wa2.g05.server.tickets.entities.Survey
+import it.polito.wa2.g05.server.tickets.repositories.SurveyRepository
 import it.polito.wa2.g05.server.tickets.repositories.TicketRepository
 import it.polito.wa2.g05.server.tickets.utils.PriorityLevel
+import it.polito.wa2.g05.server.tickets.utils.Rating
 import org.springframework.stereotype.Service
 import it.polito.wa2.g05.server.tickets.utils.TicketStatus
 import jakarta.transaction.Transactional
@@ -35,6 +38,8 @@ class TicketServiceImpl(
     private val employeeRepository: EmployeeRepository,
     private val changeRepository: ChangeRepository,
     private val specializationRepository: SpecializationRepository,
+    private val surveyRepository: SurveyRepository,
+    private val keycloakService: KeycloakService,
     private val jwtDecoder: JwtDecoder
 ) : TicketService {
 
@@ -117,9 +122,8 @@ class TicketServiceImpl(
 
         val ticket = ticketRepository.findById(id).get()
 
-        this.removeExpert(ticket)
-
         changeRepository.save(Change(currentStatus, TicketStatus.CANCELLED, Date(), ticket, ticket.expert))
+        this.removeExpert(ticket)
 
         return ticket.toDTO()
     }
@@ -153,6 +157,7 @@ class TicketServiceImpl(
         ticketRepository.updateStatus(id, TicketStatus.CLOSED, Date())
         val ticket = ticketRepository.findById(id).get()
         changeRepository.save(Change(currentStatus, TicketStatus.CLOSED, Date(), ticket, ticket.expert))
+        this.removeExpert(ticket)
 
         return ticket.toDTO()
     }
@@ -170,9 +175,18 @@ class TicketServiceImpl(
             throw TicketStatusNotValidException("Status can't be set to CLOSE from $currentStatus")
         }
 
+
+        if (ticketRepository.getSurvey(id) == null) {
+            log.error("Ticket can not be CLOSED if survey has not been sent by the customer yet")
+            throw TicketStatusNotValidException("Ticket can not be CLOSED if survey has not been sent by the customer yet")
+        }
+
         ticketRepository.updateStatus(id, TicketStatus.CLOSED, Date())
+
         val ticket = ticketRepository.findById(id).get()
+
         changeRepository.save(Change(currentStatus, TicketStatus.CLOSED, Date(), ticket, ticket.expert))
+        this.removeExpert(ticket)
 
         return ticket.toDTO()
     }
@@ -201,8 +215,18 @@ class TicketServiceImpl(
 
         if (currentStatus == TicketStatus.RESOLVED || currentStatus == TicketStatus.CLOSED) {
             ticketRepository.updateStatus(id, TicketStatus.REOPENED)
+
+            ticketRepository.removeResolvedDescription(id)
+
+            val survey = ticketRepository.getSurvey(id)
+            if (survey != null) {
+                ticketRepository.removeSurvey(id)
+                surveyRepository.delete(survey)
+            }
+
             val ticket = ticketRepository.findById(id).get()
             this.removeExpert(ticket)
+
             changeRepository.save(
                 Change(
                     currentStatus,
@@ -284,8 +308,8 @@ class TicketServiceImpl(
         if (currentStatus == TicketStatus.IN_PROGRESS) {
             ticketRepository.updateStatus(id, TicketStatus.OPEN)
             val ticket = ticketRepository.findById(id).get()
-            this.removeExpert(ticket)
             changeRepository.save(Change(currentStatus, TicketStatus.OPEN, Date(), ticket, ticket.expert))
+            this.removeExpert(ticket)
             return ticket.toDTO()
         }
 
@@ -294,7 +318,7 @@ class TicketServiceImpl(
     }
 
     @Transactional
-    override fun managerResolveTicket(id: Long): TicketDTO {
+    override fun managerResolveTicket(id: Long, data: ManagerResolveTicketDTO): TicketDTO {
 
         if (!ticketRepository.existsById(id)) {
             log.error("Ticked $id not found")
@@ -305,9 +329,9 @@ class TicketServiceImpl(
 
         if (currentStatus == TicketStatus.OPEN || currentStatus == TicketStatus.REOPENED) {
             ticketRepository.updateStatus(id, TicketStatus.RESOLVED, Date())
+            ticketRepository.setResolvedDescription(id, data.description)
             val ticket = ticketRepository.findById(id).get()
 
-            this.removeExpert(ticket)
             changeRepository.save(
                 Change(
                     currentStatus,
@@ -317,6 +341,7 @@ class TicketServiceImpl(
                     ticket.expert
                 )
             )
+            this.removeExpert(ticket)
             return ticket.toDTO()
         }
 
@@ -354,16 +379,16 @@ class TicketServiceImpl(
         ticketRepository.updateStatus(id, TicketStatus.RESOLVED, Date())
         val ticket = ticketRepository.findById(id).get()
 
-        this.removeExpert(ticket)
         changeRepository.save(
-                Change(
-                    currentStatus,
-                    TicketStatus.RESOLVED,
-                    Date(),
-                    ticket,
-                    ticket.expert
-                )
+            Change(
+                currentStatus,
+                TicketStatus.RESOLVED,
+                Date(),
+                ticket,
+                ticket.expert
+            )
         )
+        this.removeExpert(ticket)
         return ticket.toDTO()
     }
 
@@ -389,7 +414,7 @@ class TicketServiceImpl(
         return ticketRepository.findById(id).get().toDTO()
     }
 
-    override  fun expertGetTicket(id: Long, token: String): TicketDTO {
+    override fun expertGetTicket(id: Long, token: String): TicketDTO {
         val expertId = UserDetails(jwtDecoder.decode(token)).uuid
 
         val expert = employeeRepository.findById(expertId)
@@ -471,5 +496,51 @@ class TicketServiceImpl(
 
             ticketRepository.findAllByProductAndCustomer(product, customer).map { it.toDTO() }
         }
+    }
+
+    override fun getChanges(): List<ChangeDTO> =
+        changeRepository.findAll().map { it.toDTO() }
+
+    override fun getExperts(): List<EmployeeDTO> =
+        employeeRepository.findAll().filter {
+            keycloakService.getUserAuthorities(it.id.toString())
+                .contains(Role.EXPERT.roleName)
+        }.map { it.toDTO() }
+
+    @Transactional
+    override fun createSurvey(token: String, data: CreateSurveyDTO, id: Long): TicketDTO {
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
+
+        val customer = profileRepository.findById(customerId)
+            .orElseThrow {
+                log.error("Profile $customerId not found")
+                ProfileNotFoundException(customerId.toString())
+            }
+
+        if (!ticketRepository.existsById(id)) {
+            log.error("Ticked $id not found")
+            throw TicketNotFoundException(id)
+        }
+
+        if (ticketRepository.getCustomer(id) != customer) {
+            log.error("You are not allowed to perform this action")
+            throw ForbiddenActionException("You are not allowed to perform this action")
+        }
+
+        if (ticketRepository.getStatus(id) != TicketStatus.RESOLVED) {
+            log.error("Survey can not be sent if the ticket is not RESOLVED")
+            throw TicketStatusNotValidException("Survey can not be sent if the ticket is not RESOLVED")
+        }
+
+        val survey = surveyRepository.save(Survey(
+            Rating.values()[data.serviceValuation],
+            Rating.values()[data.professionality],
+            data.comment,
+            ticketRepository.findById(id).get()
+        ))
+
+        ticketRepository.saveSurvey(id, survey)
+
+        return ticketRepository.findById(id).get().toDTO()
     }
 }

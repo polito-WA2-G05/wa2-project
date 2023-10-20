@@ -5,10 +5,11 @@ import it.polito.wa2.g05.server.specializations.dtos.toDTO
 import it.polito.wa2.g05.server.tickets.entities.Employee
 
 data class EmployeeDTO(
+    val username: String,
     val workingOn: Int,
     val specializations: MutableSet<SpecializationDTO>
 )
 
 fun Employee.toDTO(): EmployeeDTO {
-    return EmployeeDTO(workingOn, specializations.map { it.toDTO() }.toMutableSet())
+    return EmployeeDTO(username, workingOn, specializations.map { it.toDTO() }.toMutableSet())
 }

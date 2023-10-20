@@ -43,5 +43,12 @@ class Ticket(
 
     @ManyToOne
     @JoinColumn(name="specialization_id" , referencedColumnName = "id")
-    var specialization: Specialization
+    var specialization: Specialization,
+
+    @Column(name="resolved_description")
+    var resolvedDescription: String? = null,
+
+    @OneToOne
+    @JoinColumn(name="survey_id", referencedColumnName = "id")
+    var survey: Survey? = null
 ): SerialIdEntity()

@@ -4,6 +4,7 @@ import it.polito.wa2.g05.server.products.entities.Product
 import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.tickets.entities.Employee
 import it.polito.wa2.g05.server.specializations.entities.Specialization
+import it.polito.wa2.g05.server.tickets.entities.Survey
 import it.polito.wa2.g05.server.tickets.entities.Ticket
 import it.polito.wa2.g05.server.tickets.utils.PriorityLevel
 import it.polito.wa2.g05.server.tickets.utils.TicketStatus
@@ -14,9 +15,17 @@ import org.springframework.data.repository.query.Param
 import java.util.Date
 
 interface TicketRepository : JpaRepository<Ticket, Long> {
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Ticket t SET t.status = :status, t.closedDate = :closedDate WHERE t.id = :id")
-    fun updateStatus(@Param("id") id: Long, @Param("status") status: TicketStatus, @Param("closedDate") closedDate: Date? = null): Int
+    fun updateStatus(
+        @Param("id") id: Long,
+        @Param("status") status: TicketStatus,
+        @Param("closedDate") closedDate: Date? = null
+    ): Int
+
+    @Modifying
+    @Query("UPDATE Ticket t SET t.resolvedDescription = :description WHERE t.id = :id")
+    fun setResolvedDescription(@Param("id") id: Long, @Param("description") description: String): Int
 
     @Modifying
     @Query("UPDATE Ticket t SET t.expert = NULL WHERE t.id = :id")
@@ -38,15 +47,36 @@ interface TicketRepository : JpaRepository<Ticket, Long> {
 
     fun findAllByExpert(@Param("expert") expert: Employee): List<Ticket>
 
-    fun findAllByProductAndExpert(@Param("product") product: Product, @Param("expert") expert: Employee) :List<Ticket>
+    fun findAllByProductAndExpert(@Param("product") product: Product, @Param("expert") expert: Employee): List<Ticket>
 
     fun findAllByCustomer(@Param("customer") customer: Profile): List<Ticket>
 
-    fun findAllByProductAndCustomer(@Param("product") product: Product, @Param("customer") customer: Profile) :List<Ticket>
+    fun findAllByProductAndCustomer(
+        @Param("product") product: Product,
+        @Param("customer") customer: Profile
+    ): List<Ticket>
 
     @Modifying
-    @Query ("UPDATE Ticket t SET t.priorityLevel = :priorityLevel, t.expert = :expert WHERE t.id = :id")
-    fun startTicket(@Param("id") id:Long, @Param("priorityLevel") priorityLevel: PriorityLevel, @Param("expert") expert: Employee) : Int
+    @Query("UPDATE Ticket t SET t.priorityLevel = :priorityLevel, t.expert = :expert WHERE t.id = :id")
+    fun startTicket(
+        @Param("id") id: Long,
+        @Param("priorityLevel") priorityLevel: PriorityLevel,
+        @Param("expert") expert: Employee
+    ): Int
 
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Ticket t SET t.survey = :survey WHERE t.id = :id")
+    fun saveSurvey(@Param("id") id: Long, @Param("survey") survey: Survey): Int
+
+    @Query("SELECT t.survey FROM Ticket t WHERE t.id = :id")
+    fun getSurvey(@Param("id") id: Long): Survey?
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Ticket t SET t.resolvedDescription = NULL WHERE t.id = :id")
+    fun removeResolvedDescription(@Param("id") id: Long): Int
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Ticket t SET t.survey = NULL WHERE t.id = :id")
+    fun removeSurvey(@Param("id") id: Long): Int
 }
 

@@ -1,11 +1,9 @@
 package it.polito.wa2.g05.server.tickets.controllers
 
 import io.micrometer.observation.annotation.Observed
-import it.polito.wa2.g05.server.tickets.dtos.TicketDTO
 import it.polito.wa2.g05.server.tickets.services.TicketService
 import it.polito.wa2.g05.server.ValidationException
-import it.polito.wa2.g05.server.tickets.dtos.CreateTicketFormDTO
-import it.polito.wa2.g05.server.tickets.dtos.StartTicketFormDTO
+import it.polito.wa2.g05.server.tickets.dtos.*
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -99,9 +97,9 @@ class TicketControl(private val ticketService: TicketService) {
     /* PATCH /api/manager/tickets/{id}/resolve */
 
     @PatchMapping("/manager/tickets/{id}/resolve")
-    fun managerResolveTicket(@PathVariable id: Long) : TicketDTO {
+    fun managerResolveTicket(@PathVariable id: Long, @RequestBody @Valid data: ManagerResolveTicketDTO, br: BindingResult) : TicketDTO {
         log.info("Manager resolved ticket with id:$id")
-        return ticketService.managerResolveTicket(id)
+        return ticketService.managerResolveTicket(id, data)
     }
 
     /* GET /api/manager/tickets/{id} */
@@ -150,5 +148,39 @@ class TicketControl(private val ticketService: TicketService) {
     fun expertGetTickets(@RequestHeader("Authorization") token: String, @RequestParam("product", required = false) productEan: String?): List<TicketDTO> {
         log.info("Expert retrieving all tickets")
         return ticketService.expertGetTickets(token, productEan)
+    }
+
+    /* GET /api/manager/tickets/experts */
+
+    @GetMapping("/manager/tickets/experts")
+    fun getExperts(): List<EmployeeDTO> {
+        log.info("Manager retrieving all experts")
+        return ticketService.getExperts()
+    }
+
+
+    //CHANGES
+
+    /* GET /api/manager/tickets/changes */
+
+    @GetMapping("/manager/tickets/changes")
+    fun getChanges(): List<ChangeDTO> {
+        log.info("Manager retrieving all changes")
+        return ticketService.getChanges()
+    }
+
+
+    //SURVEY
+
+    @PostMapping("/customer/tickets/{id}/survey")
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createSurvey(
+        @RequestHeader("Authorization") token: String,
+        @PathVariable id: Long,
+        @RequestBody @Valid data: CreateSurveyDTO,
+        br: BindingResult
+    ): TicketDTO {
+        log.info("Customer creating a survey")
+        return ticketService.createSurvey(token, data, id)
     }
 }

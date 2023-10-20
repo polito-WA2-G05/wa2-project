@@ -16,7 +16,8 @@ create table if not exists profiles
 
 create table if not exists employees
 (
-    id            uuid primary key,
+    id         uuid primary key,
+    username   varchar(255) unique not null,
     working_on int default 0
 );
 
@@ -28,22 +29,36 @@ create table if not exists specializations
 
 create table if not exists tickets
 (
-    id                serial primary key,
-    status            varchar(15)  not null,
-    title             varchar(255) not null,
-    description       varchar(255) not null,
-    customer_id       uuid          not null,
-    expert_id         uuid,
-    priority_level    int,
-    product_id        int          not null,
-    created_date      timestamptz  not null,
-    closed_date       timestamptz,
-    specialization_id int          not null,
+    id                   serial primary key,
+    status               varchar(15)  not null,
+    title                varchar(255) not null,
+    description          varchar(255) not null,
+    customer_id          uuid         not null,
+    expert_id            uuid,
+    priority_level       int,
+    product_id           int          not null,
+    created_date         timestamptz  not null,
+    closed_date          timestamptz,
+    specialization_id    int          not null,
+    resolved_description text,
+    survey_id            int,
 
     FOREIGN KEY (customer_id) REFERENCES profiles (id),
     FOREIGN KEY (expert_id) REFERENCES employees (id),
     FOREIGN KEY (product_id) REFERENCES products (id),
-    FOREIGN KEY (specialization_id) REFERENCES specializations (id)
+    FOREIGN KEY (specialization_id) REFERENCES specializations (id),
+    FOREIGN KEY (survey_id) REFERENCES surveys(id)
+);
+
+create table surveys
+(
+    id                serial primary key,
+    ticket_id         int unique not null,
+    service_valuation int not null,
+    professionality   int not null,
+    comment           text,
+
+    FOREIGN KEY (ticket_id) REFERENCES tickets (id)
 );
 
 create table if not exists expert_specialization

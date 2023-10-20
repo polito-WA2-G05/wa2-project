@@ -17,6 +17,8 @@ class Employee (
     @Id
     override var id: UUID?,
 
+    var username: String = "",
+
     @ManyToMany
     @JoinTable(
         name = "expert_specialization",

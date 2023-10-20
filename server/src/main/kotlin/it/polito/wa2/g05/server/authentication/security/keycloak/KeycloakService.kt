@@ -9,6 +9,7 @@ import org.keycloak.OAuth2Constants.PASSWORD
 import org.keycloak.OAuth2Constants.REFRESH_TOKEN
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.Keycloak
+import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
@@ -142,6 +143,13 @@ class KeycloakService(
     }
 
     /* Public service methods */
+
+    fun getUser(userUUID: UUID): UserRepresentation =
+        keycloak.realm(properties.realm)
+            .users()
+            .get(userUUID.toString())
+            .toRepresentation()
+
 
     /**
      * Gets the user authorities, so its client roles, by its UUID.

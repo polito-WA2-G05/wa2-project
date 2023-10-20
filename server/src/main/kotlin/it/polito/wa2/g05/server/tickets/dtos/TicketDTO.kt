@@ -22,9 +22,11 @@ data class TicketDTO(
     val product: ProductDTO,
     val createdDate: Date,
     val closedDate: Date?,
-    val specialization: SpecializationDTO
+    val specialization: SpecializationDTO,
+    val resolvedDescription: String?,
+    val survey: SurveyDTO?
 )
 
 fun Ticket.toDTO(): TicketDTO {
-    return TicketDTO(id, status, title, description, customer.toDTO(), expert?.toDTO(), priorityLevel , product.toDTO(), createdDate, closedDate, specialization.toDTO())
+    return TicketDTO(id, status, title, description, customer.toDTO(), expert?.toDTO(), priorityLevel , product.toDTO(), createdDate, closedDate, specialization.toDTO(), resolvedDescription, survey?.toDTO())
 }
