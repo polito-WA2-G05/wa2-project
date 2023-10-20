@@ -5,6 +5,7 @@ import { Button, Spinner, Col } from "react-bootstrap";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 
+// Components
 import { InputField } from "@components/forms";
 
 // Services
@@ -29,7 +30,6 @@ const Home = () => {
 			.getProductByEAN(ean)
 			.then((data) =>
 				navigate(`/products/${data.ean}`, {
-					replace: true,
 					state: { product: data },
 				})
 			)

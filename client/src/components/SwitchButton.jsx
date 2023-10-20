@@ -1,3 +1,4 @@
+// Imports
 import { Form } from "react-bootstrap"
 
 const SwitchButton = ({ label, onToggle }) => {

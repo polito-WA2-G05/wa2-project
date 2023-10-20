@@ -6,7 +6,8 @@
           "@contexts/*": ["src/contexts/*"],
           "@hooks/*": ["src/hooks/*"],        
           "@views/*": ["src/views/*"],
-          "@services/*": ["src/services/*"]
+          "@services/*": ["src/services/*"],
+          "@utils/*": ["src/utils/*"]
         }
     },
     "exclude": ["node_modules"],

@@ -2,3 +2,11 @@ export {default as SwitchButton} from "./SwitchButton"
 export {default as InfoCard} from "./InfoCard"
 export {default as ProductsTable} from "./ProductsTable"
 export {default as TicketAccordion} from "./TicketAccordion"
+export {default as TicketActions} from "./TicketActions"
+export {default as ChangesTable} from "./ChangesTable"
+export {default as PriorityModal} from "./PriorityModal"
+export {default as SurveyModal} from "./SurveyModal"
+export {default as ResolveModal} from "./ResolveModal"
+export {default as ExpertsTable} from "./ExpertsTable"
+export {default as ChatMessage} from './ChatMessage'
+export {default as MessageInput} from './MessageInput'

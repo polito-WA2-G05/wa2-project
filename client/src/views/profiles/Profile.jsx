@@ -3,10 +3,14 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, Button } from "react-bootstrap";
 
+// Components
 import { InfoCard } from "@components";
 
 // Hooks
 import { useSessionStorage } from "@hooks";
+
+// Utils
+import { Role } from "../../utils";
 
 const Profile = () => {
 	const { session } = useSessionStorage();
@@ -14,7 +18,7 @@ const Profile = () => {
 	const navigate = useNavigate();
 
 	const getInfos = () => {
-		return session.details.authorities[0] === "Customer" ?
+		return session.details.authorities[0] === Role.CUSTOMER ?
 			[
 				{ label: "Email", value: session.details.email },
 				{ label: "Username", value: session.details.username }
@@ -38,7 +42,7 @@ const Profile = () => {
 					<p>{info.value}</p>
 				</Card.Text>
 			))}
-			{session.details.authorities[0] === "Customer" && (
+			{session.details.authorities[0] === Role.CUSTOMER && (
 				<Button
 					className="mt-4"
 					onClick={() => navigate("/me/edit", { replace: true })}

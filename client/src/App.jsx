@@ -4,6 +4,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 // Views
 import {
 	Home,
+	Error,
 	Products,
 	Product,
 	Profile,
@@ -14,7 +15,10 @@ import {
 	SearchTicket,
 	Tickets,
 	Ticket,
-	CreateTicket
+	CreateTicket,
+	Changes,
+	Experts,
+	Chat
 } from "@views";
 
 // Components
@@ -28,6 +32,7 @@ function App() {
 		<Routes location={location} key={location.pathname}>
 			<Route element={<Layout />}>
 				<Route index path="/" element={<Home />} />
+					<Route path="chat" element={<Chat/>} />
 				<Route element={<GuestRoute />}>
 					<Route path="/login" element={<Login />} />
 					<Route path="/signup" element={<Signup />} />
@@ -46,10 +51,13 @@ function App() {
 						<Route path="/me/edit" element={<EditProfile />} />
 					</Route>
 					<Route element={<RoleRoute roles={["Manager"]} />}>
+						<Route path="/manager/experts" element={<Experts />}/>
 						<Route path="/manager/create-expert" element={<CreateExpert />} />
+						<Route path="/manager/changes" element={<Changes />} />
 					</Route>
 				</Route>
 			</Route>
+			<Route path="*" element={<Error />} />
 		</Routes>
 	);
 }

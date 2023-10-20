@@ -45,7 +45,7 @@ const SignupForm = () => {
 				notify.success(
 					`${(res.username, res.email)} You have been successfully registered`
 				);
-				navigate("/", { replace: true });
+				navigate("/login", { replace: true });
 			})
 			.catch((err) => notify.error(err.detail ?? err))
 			.finally(() => setLoading(false));
@@ -79,9 +79,8 @@ const SignupForm = () => {
 						<Row>
 							{fields.signup.map((props, idx) => {
 								return (
-									<Col xs={12} sm={6}>
+									<Col key={idx} xs={12} sm={6}>
 										<InputField
-											key={idx}
 											id={props.id}
 											type={props.type}
 											name={props.name}

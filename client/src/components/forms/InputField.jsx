@@ -1,3 +1,4 @@
+// Imports
 import { Form } from 'react-bootstrap';
 import { ErrorMessage, Field, useField } from 'formik';
 import classNames from 'classnames';
@@ -11,7 +12,7 @@ const InputField = ({ id, name, type, placeholder, ...props }) => {
     })
 
     const fieldClass = classNames({
-        'form-control': type === 'text' || type === 'date' || type === 'email' || type === 'password',
+        'form-control': type === 'text' || props.as ==='textarea' || type === 'date' || type === 'email' || type === 'password',
         'form-select': props.as === 'select',
         'form-check-input': type === 'checkbox',
         'is-invalid': type !== 'checkbox' && meta.touched && meta.error,
@@ -40,8 +41,8 @@ const InputField = ({ id, name, type, placeholder, ...props }) => {
                         {
                             props.options.map((option, index) => {
                                 return (
-                                    <option key={index} value={option.value}>
-                                        {option.label}
+                                    <option key={index} value={option.id}>
+                                        {option.name}
                                     </option>
                                 );
                             })

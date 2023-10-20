@@ -5,6 +5,8 @@ import { Spinner, Button } from 'react-bootstrap';
 import { Formik, Form } from "formik";
 import * as Yup from 'yup';
 
+import { Role } from "@utils"
+
 import fields from "./fields"
 
 // Components
@@ -36,7 +38,7 @@ const LoginForm = () => {
             .then((user) => {
                 setSession(user)
                 notify.success(`Welcome back, ${user.info.name ?? user.details.username}`);
-                navigate('/tickets/search', { replace: true });
+                navigate(user.details.authorities[0] === Role.EXPERT ? '/tickets' : '/tickets/search', { replace: true });
             })
             .catch(err => notify.error(err.detail ?? err))
             .finally(() => setLoading(false))

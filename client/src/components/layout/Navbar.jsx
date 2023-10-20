@@ -9,6 +9,7 @@ import api from '@services';
 
 // Hooks
 import { useNotification, useSessionStorage } from '@hooks';
+import { Role } from '@utils';
 
 const Navbar = () => {
     const { session, loggedIn, deleteSession } = useSessionStorage();
@@ -23,11 +24,11 @@ const Navbar = () => {
                 notify.success("See you soon!");
                 navigate('/', { replace: true });
             })
-            .catch((err) => notify.error(err.details) ?? err)
+            .catch((err) => notify.error(err.detail) ?? err)
     }
 
     return (
-        <NavigationBar className={"p-4 w-full"} bg="light" variant="dark" sticky="top">
+        <NavigationBar className={"p-4 w-full"} bg="light" variant="dark" sticky="top" style={{zIndex: 999}}>
             <Nav className="d-flex justify-content-between align-items-center w-100">
                 <Link to={"/"} className={"text-decoration-none d-flex align-items-center fw-semibold"}>
                     <ImSearch className={"me-2"} size={20} />
@@ -60,9 +61,9 @@ const Navbar = () => {
                                 }
                                 className='align-items-center d-flex'
                             >
-                                <Dropdown.Item as="button" onClick={() => navigate('/products', { replace: true })}>All products</Dropdown.Item>
-                                <Dropdown.Item as="button" onClick={() => navigate('/tickets', { replace: true })}>All Ticket</Dropdown.Item>
-                                <Dropdown.Item as="button" onClick={() => navigate('/tickets/search', { replace: true })}>Search Ticket</Dropdown.Item>
+                                <Dropdown.Item as="button" onClick={() => navigate('/products')}>All products</Dropdown.Item>
+                                <Dropdown.Item as="button" onClick={() => navigate('/tickets')}>Tickets</Dropdown.Item>
+                                <Dropdown.Item as="button" onClick={() => navigate('/tickets/search')}>Search Ticket</Dropdown.Item>
                                 <Dropdown.Divider />
                                 <Dropdown.ItemText as={"small"} className='mb-2'>
                                     {`${session.details.authorities[0]} Menu`}
@@ -70,18 +71,21 @@ const Navbar = () => {
                                 {
                                     ["Customer", "Expert"].includes(session.details.authorities[0]) &&
 
-                                    <Dropdown.Item as="button" onClick={() => navigate('/me', { replace: true })}>Profile</Dropdown.Item>
+                                    <Dropdown.Item as="button" onClick={() => navigate('/me')}>Profile</Dropdown.Item>
                                 }
                                 {
                                     session.details.authorities.includes("Customer") &&
                                     <>
-                                        <Dropdown.Item as="button" onClick={() => navigate('/tickets/new', { replace: true })}>New Ticket</Dropdown.Item>
-                                        <Dropdown.Item as="button" onClick={() => navigate('/tickets', { replace: true })}>My Tickets</Dropdown.Item>
+                                        <Dropdown.Item as="button" onClick={() => navigate('/tickets/new')}>New Ticket</Dropdown.Item>
                                     </>
                                 }
                                 {
                                     session.details.authorities.includes("Manager") &&
-                                    <Dropdown.Item as="button" onClick={() => navigate('/manager/create-expert', { replace: true })}>Create expert</Dropdown.Item>
+                                    <>
+                                        <Dropdown.Item as="button" onClick={() => navigate('/manager/create-expert')}>Create expert</Dropdown.Item>
+                                        <Dropdown.Item as="button" onClick={() => navigate('/manager/changes')}>Changes</Dropdown.Item>
+                                        <Dropdown.Item as="button" onClick={() => navigate('/manager/experts')}>Experts</Dropdown.Item>
+                                    </>
                                 }
                                 <Dropdown.Item as="button" className='text-danger' onClick={() => handleLogout()}>Logout</Dropdown.Item>
                             </DropdownButton>

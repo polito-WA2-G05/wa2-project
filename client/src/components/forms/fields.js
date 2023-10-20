@@ -1,3 +1,13 @@
+import { Rating } from "@utils"
+
+const ratings = [
+    { name: "EXCELLENT", id: Rating.EXCELLENT },
+    { name: "GOOD", id: Rating.GOOD },
+    { name: "FAIR", id: Rating.FAIR },
+    { name: "BAD", id: Rating.BAD },
+    { name: "UNACCEPTABLE", id: Rating.UNACCEPTABLE }
+]
+
 const fields = {
     login: [
         { id: "username", type: "text", name: "username", placeholder: "Username" },
@@ -23,14 +33,32 @@ const fields = {
     ],
     createTicket: [
         { id: "title", type: "text", name: "title", placeholder: "Title" },
-        { id: "description", type: "text", name: "description", placeholder: "Description" },
+        { id: "description", as: "textarea", name: "description", placeholder: "Description", rows: 3 },
         { id: "productEAN", type: "text", name: "productEAN", placeholder: "Product EAN" },
         {
-            id: "specialization", 
-            name: "specialization", 
-            defaultOptionLabel: "Select a specialization...", 
+            id: "specialization",
+            name: "specialization",
+            defaultOptionLabel: "Select a specialization...",
             as: "select"
         }
+    ],
+    surveyModal: [
+        {
+            id: "serviceValuation",
+            name: "serviceValuation",
+            defaultOptionLabel: "Rate the service",
+            as: "select",
+            options: ratings
+        },
+        {
+            id: "professionality",
+            name: "professionality",
+            defaultOptionLabel: "Rate professionality",
+            as: "select",
+            options: ratings
+        },
+        { id: "comment", as: "textarea", name: "comment", placeholder: "Comment", rows: 4 },
+
     ]
 };
 

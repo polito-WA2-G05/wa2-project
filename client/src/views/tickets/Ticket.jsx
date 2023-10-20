@@ -1,18 +1,17 @@
 // Imports
 import { useEffect, useState } from "react";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
-import { Spinner, Card, Button } from "react-bootstrap";
+import { useLocation, useParams, Link } from "react-router-dom";
+import { Spinner, Card } from "react-bootstrap";
 
 // Components
-import { InfoCard } from "@components";
-
-import {useSessionStorage} from "@hooks"
+import { InfoCard, TicketActions } from "@components";
 
 // Services
 import api from "@services";
 
 // Hooks
-import { useNotification } from "@hooks";
+import { useNotification, useSessionStorage } from "@hooks";
+import { TicketStatus } from "@utils";
 
 const TicketGeneralInfo = ({ ticket }) => (
 	<div>
@@ -25,7 +24,7 @@ const TicketGeneralInfo = ({ ticket }) => (
 			},
 			{
 				label: "Closed At",
-				value: new Date(ticket.closedDate).toLocaleString(),
+				value: ticket.closedDate ? new Date(ticket.closedDate).toLocaleString() : "Not closed yet",
 			},
 		].map((info) => (
 			<Card.Text key={`ticket-${ticket.id}-${info.label}`}>
@@ -40,14 +39,29 @@ const TicketStatusInfo = ({ ticket }) => (
 	<div className="w-50">
 		<span>Status</span>
 		<h5 className="fw-bold mb-3">{ticket.status}</h5>
+		{ticket.status === TicketStatus.RESOLVED && ticket.resolvedDescription &&
+			<>
+				<span>Description of ticket resolution</span>
+				<h5>{ticket.resolvedDescription}</h5>
+			</>
+		}
 
-		<span>Expert</span>
-		<h5 className="fw-bold mb-3">
-			{ticket.expert ? "Assigned" : "Not assigned"}
-		</h5>
+		{[TicketStatus.OPEN, TicketStatus.IN_PROGRESS, TicketStatus.REOPENED]
+			.includes(ticket.status) &&
+			<>
+				<span>Expert</span>
+				<h5 className="fw-bold mb-3">
+					{ticket.expert ? "Assigned" : "Not assigned"}
+				</h5>
+			</>
+		}
 
-		<span>Priority</span>
-		<h5 className="fw-bold">{ticket.priorityLevel ?? "None"}</h5>
+		{ticket.status === TicketStatus.IN_PROGRESS &&
+			<>
+				<span>Priority</span>
+				<h5 className="fw-bold">{ticket.priorityLevel ?? "None"}</h5>
+			</>
+		}
 	</div>
 );
 
@@ -83,16 +97,19 @@ const TicketProductInfo = ({ product, ticketId }) => (
 );
 
 const Ticket = () => {
-	const {session} = useSessionStorage()
+	const { session } = useSessionStorage()
 	const { ticketId } = useParams();
 	const location = useLocation();
 	const { state } = location;
 
-	// Enable this comment
 	const [ticket, setTicket] = useState(null);
 	const [loading, setLoading] = useState(true);
 
 	const notify = useNotification();
+
+	const handleUpdate = (ticket) => {
+		setTicket(ticket)
+	}
 
 	useEffect(() => {
 		if (loading) {
@@ -114,29 +131,30 @@ const Ticket = () => {
 
 	if (!loading)
 		return (
-			<>
-				{ticket ? (
-					<InfoCard
-						headerTitle={`Ticket ${ticket.id} Info`}
-						contentTitle={`${ticket.title}`}
-					>
-						{/* <InfoCard > */}
-						<div className="d-flex justify-content-between align-items-start">
-							<div className="w-50">
-								<TicketGeneralInfo ticket={ticket} />
-								<TicketCustomerInfo customer={ticket.customer} ticketId={ticketId} />
-								<TicketProductInfo product={ticket.product} ticketId={ticketId}/>
+			<div>
+				<Link className="mx-auto" to={-1}>
+					Go back
+				</Link>
+				<div>
+					{ticket ? (
+						<InfoCard headerTitle={`Ticket ${ticket.id} Info`} contentTitle={`${ticket.title}`}>
+							<div className="d-flex justify-content-between align-items-start">
+								<div className="w-50">
+									<TicketGeneralInfo ticket={ticket} />
+									<TicketCustomerInfo customer={ticket.customer} ticketId={ticketId} />
+									<TicketProductInfo product={ticket.product} ticketId={ticketId} />
+								</div>
+								<TicketStatusInfo ticket={ticket} />
 							</div>
-							<TicketStatusInfo ticket={ticket} />
-						</div>
-						<TicketActions ticket={ticket} />
-					</InfoCard>
-				) : (
-					<h3 className={"fw-bold fs-2 text-center"}>
-						Ticket #{ticketId} not found
-					</h3>
-				)}
-			</>
+							<TicketActions ticket={ticket} handleUpdate={handleUpdate} />
+						</InfoCard>
+					) : (
+						<h3 className={"fw-bold fs-2 text-center"}>
+							Ticket #{ticketId} not found
+						</h3>
+					)}
+				</div>
+			</div>
 		);
 
 	return (
@@ -155,25 +173,3 @@ const Ticket = () => {
 };
 
 export default Ticket;
-
-const TicketActions = ({ ticket }) => {
-	const navigate = useNavigate();
-
-	return (
-		<>
-			<Button
-				className="me-3"
-				onClick={() => navigate("/me/edit", { replace: true })}
-				variant="danger"
-			>
-				Cancel ticket
-			</Button>
-			<Button
-				onClick={() => navigate("/me/edit", { replace: true })}
-				variant="warning"
-			>
-				Reopen ticket
-			</Button>
-		</>
-	);
-};

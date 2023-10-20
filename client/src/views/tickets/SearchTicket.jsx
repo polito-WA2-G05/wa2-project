@@ -9,13 +9,11 @@ import * as Yup from "yup";
 import { InputField } from "@components/forms";
 import { SwitchButton } from "@components";
 
-import {useSessionStorage} from "@hooks"
-
 // Services
 import api from "@services";
 
 // Hooks
-import { useNotification } from "@hooks";
+import { useNotification, useSessionStorage } from "@hooks";
 
 const SearchTicket = () => {
 	const [loading, setLoading] = useState(false);
@@ -45,9 +43,8 @@ const SearchTicket = () => {
 		
 		apiHandler(session.details.authorities[0].toLowerCase(), !searchByProduct ? ticketId : productEan )
 			.then((res) => { 
-				// TODO: Handle this
 				!searchByProduct ? navigate(`/tickets/${res.id}`) : 
-				navigate(`/tickets?product=${productEan}`, { replace: true, state: { res } }) })
+				navigate(`/tickets?product=${productEan}`, { state: { res } }) })
 			.catch((err) => notify.error(err.detail ?? err))
 			.finally(() => setLoading(false))
 	}

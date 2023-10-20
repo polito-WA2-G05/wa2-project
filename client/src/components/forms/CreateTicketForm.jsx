@@ -1,5 +1,5 @@
 // Imports
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Spinner, Button, Col } from "react-bootstrap";
 import { Formik, Form } from "formik";
@@ -14,25 +14,15 @@ import { InputField } from "@components/forms";
 // Services
 import api from "@services";
 
-// Hooks
+// Hooks 	
 import { useNotification } from "@hooks";
 
 YupPassword(Yup);
 
-// Put get specializations here (use useEffect)
-const specializations = [
-	{
-		label: "Computer",
-		value: 1,
-	},
-	{
-		label: "Mobile",
-		value: 2,
-	},
-];
-
 const CreateTicketForm = () => {
 	const [loading, setLoading] = useState(false);
+	const [loadingSpecializations, setLoadingSpecializations] = useState(false);
+	const [specializations, setSpecializations] = useState([])
 
 	const notify = useNotification();
 	const navigate = useNavigate();
@@ -42,7 +32,7 @@ const CreateTicketForm = () => {
 		description: Yup.string().required("Description is mandatory"),
 		productEAN: Yup.string().required("Product EAN is mandatory"),
 		specialization: Yup.number()
-			.oneOf(specializations.map(spec => spec.value), "Specialization should be a selectable ones")
+			.oneOf(specializations.map(spec => spec.id), "Specialization should be a selectable ones")
 			.integer()
 			.required("Specialization is mandatory"),
 	});
@@ -58,6 +48,14 @@ const CreateTicketForm = () => {
         .catch((err) => notify.error(err.detail ?? err))
         .finally(() => setLoading(false));
 	};
+
+	useEffect(() => {
+		setLoadingSpecializations(true);
+		api.ticket.getSpecializations()
+			.then((specialization) => setSpecializations(specialization))
+			.catch((err) => notify.error(err))
+			.finally(() => setLoadingSpecializations(false))
+	},[])
 
 	return (
 		<Formik
@@ -77,7 +75,7 @@ const CreateTicketForm = () => {
 						!touched.productEAN &&
 						!touched.specialization) ||
 					!isValid ||
-					loading;
+					loading || loadingSpecializations;
 				return (
 					<Form>
 						{fields.createTicket.map((props) => {

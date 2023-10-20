@@ -1,5 +1,5 @@
 // Imports
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Spinner, Button, Row, Col } from "react-bootstrap";
 import { Formik, Form } from "formik";
@@ -21,6 +21,8 @@ YupPassword(Yup);
 
 const CreateExpertForm = () => {
 	const [loading, setLoading] = useState(false);
+	const [loadingSpecializations, setLoadingSpecializations] = useState(false)
+	const [specializations, setSpecializations] = useState([])
 
 	const notify = useNotification();
 	const navigate = useNavigate();
@@ -37,18 +39,6 @@ const CreateExpertForm = () => {
 			.of(Yup.number().integer()),
 	});
 
-	// Put get specializations here (use useEffect)
-	const specializations = [
-		{
-			label: "Computer",
-			value: 1,
-		},
-		{
-			label: "Mobile",
-			value: 2,
-		},
-	];
-
 	const handleSubmit = (values) => {
 		const { username, email, password, specializations } = values;
 		setLoading(true);
@@ -56,11 +46,26 @@ const CreateExpertForm = () => {
 			.createExpert(username, email, password, specializations)
 			.then(() => {
 				notify.success("Expert successfully created");
-				navigate("/", { replace: true });
+				navigate("/");
 			})
 			.catch((err) => notify.error(err.detail ?? err))
 			.finally(() => setLoading(false));
 	};
+
+	useEffect(() => {
+		setLoadingSpecializations(true)
+		api.ticket.getSpecializations()
+			.then((specialization) => {
+				const mappedSpecializations = specialization.map(spec => ({
+					label: spec.name,
+					value: spec.id,
+				}));
+				setSpecializations(mappedSpecializations);
+			})
+			.catch((err) => notify.error(err))
+			.finally(() => setLoadingSpecializations(false))
+	}, []);
+	
 
 	return (
 		<Formik
@@ -82,7 +87,7 @@ const CreateExpertForm = () => {
 						!touched.confirmPassword &&
 						!touched.specializations) ||
 					!isValid ||
-					loading;
+					loading || loadingSpecializations;
 				return (
 					<Form>
 						<Row>
@@ -103,7 +108,7 @@ const CreateExpertForm = () => {
 							<MultiSelect
 								name={"specializations"}
 								options={specializations}
-								placeholder={"Select spacializations..."}
+								placeholder={"Select specializations..."}
 							/>
 						</Row>
 						<Button

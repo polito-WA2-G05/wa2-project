@@ -1,3 +1,4 @@
+// Imports
 import { Row, Col, Card } from "react-bootstrap"
 
 const InfoCard = ({ headerTitle, contentTitle, children }) => {
