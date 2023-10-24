@@ -125,6 +125,8 @@ class TicketServiceImpl(
         changeRepository.save(Change(currentStatus, TicketStatus.CANCELLED, Date(), ticket, ticket.expert))
         this.removeExpert(ticket)
 
+
+
         return ticket.toDTO()
     }
 
@@ -175,8 +177,7 @@ class TicketServiceImpl(
             throw TicketStatusNotValidException("Status can't be set to CLOSE from $currentStatus")
         }
 
-
-        if (ticketRepository.getSurvey(id) == null) {
+        if (currentStatus == TicketStatus.RESOLVED && ticketRepository.getSurvey(id) == null) {
             log.error("Ticket can not be CLOSED if survey has not been sent by the customer yet")
             throw TicketStatusNotValidException("Ticket can not be CLOSED if survey has not been sent by the customer yet")
         }

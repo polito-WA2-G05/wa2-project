@@ -1,9 +1,6 @@
 package it.polito.wa2.g05.server.tickets.services
 
-import it.polito.wa2.g05.server.authentication.dtos.ExpertDetailsDTO
 import it.polito.wa2.g05.server.tickets.dtos.*
-import org.hibernate.validator.constraints.EAN
-import java.util.ListResourceBundle
 
 interface TicketService {
     fun createTicket(data: CreateTicketFormDTO, token: String): TicketDTO
