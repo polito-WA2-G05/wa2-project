@@ -14,6 +14,25 @@ create table if not exists profiles
     email   varchar(255) unique not null
 );
 
+create table if not exists purchases
+(
+    id           uuid primary key not null,
+    profile_id   uuid,
+    purchased_at timestamptz      not null,
+
+    FOREIGN KEY (profile_id) REFERENCES profiles (id)
+);
+
+create table if not exists purchase_product
+(
+    purchase_id uuid not null,
+    product_id  int  not null,
+
+    PRIMARY KEY (purchase_id, product_id),
+    FOREIGN KEY (purchase_id) REFERENCES purchases (id),
+    FOREIGN KEY (product_id) REFERENCES products (id)
+);
+
 create table if not exists employees
 (
     id         uuid primary key,
@@ -47,15 +66,26 @@ create table if not exists tickets
     FOREIGN KEY (expert_id) REFERENCES employees (id),
     FOREIGN KEY (product_id) REFERENCES products (id),
     FOREIGN KEY (specialization_id) REFERENCES specializations (id),
-    FOREIGN KEY (survey_id) REFERENCES surveys(id)
+    FOREIGN KEY (survey_id) REFERENCES surveys (id)
 );
 
-create table surveys
+create table if not exists messages
+(
+    id               uuid primary key not null,
+    text             text             not null,
+    timestamp        timestamptz      not null,
+    ticket_id        int              not null,
+    is_from_customer bool             not null,
+
+    FOREIGN KEY (ticket_id) REFERENCES tickets (id)
+);
+
+create table if not exists surveys
 (
     id                serial primary key,
     ticket_id         int unique not null,
-    service_valuation int not null,
-    professionality   int not null,
+    service_valuation int        not null,
+    professionality   int        not null,
     comment           text,
 
     FOREIGN KEY (ticket_id) REFERENCES tickets (id)
@@ -84,3 +114,10 @@ create table if not exists changes
     FOREIGN KEY (expert_id) REFERENCES employees (id)
 );
 
+create table if not exists notifications
+(
+    id        uuid primary key not null,
+    text      text             not null,
+    receiver  uuid             not null,
+    timestamp timestamptz      not null
+);
