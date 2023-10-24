@@ -1,139 +1,119 @@
 // Imports
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Spinner, Button, Row, Col } from "react-bootstrap";
-import { Formik, Form } from "formik";
+import {useContext, useState} from "react";
+import {useNavigate} from "react-router-dom";
+import {Button, Col, Row} from "react-bootstrap";
+import {Form, Formik} from "formik";
 import * as Yup from "yup";
 import YupPassword from "yup-password";
 
 import fields from "./fields"
 
 // Components
-import { MultiSelect, InputField } from "@components/forms";
+import {InputField, MultiSelect, SubmitButton} from "@components/forms";
 
 // Services
 import api from "@services";
 
 // Hooks
-import { useNotification } from "@hooks";
+import {useNotification} from "@hooks";
+import {SessionContext} from "@contexts";
 
 YupPassword(Yup);
 
-const CreateExpertForm = () => {
-	const [loading, setLoading] = useState(false);
-	const [loadingSpecializations, setLoadingSpecializations] = useState(false)
-	const [specializations, setSpecializations] = useState([])
+const CreateExpertForm = ({specializations}) => {
+    const [loading, setLoading] = useState(false);
 
-	const notify = useNotification();
-	const navigate = useNavigate();
+    const {onError} = useContext(SessionContext)
 
-	const CreateExpertSchema = Yup.object().shape({
-		username: Yup.string().required("Username is mandatory"),
-		email: Yup.string().email().required("Email is mandatory"),
-		password: Yup.string().password().required("Password is mandatory"),
-		confirmPassword: Yup.string()
-			.oneOf([Yup.ref("password"), null], "Passwords must match")
-			.required(),
-		specializations: Yup.array()
-			.min(1, "Select at least 1 specialization")
-			.of(Yup.number().integer()),
-	});
+    const notify = useNotification();
+    const navigate = useNavigate();
 
-	const handleSubmit = (values) => {
-		const { username, email, password, specializations } = values;
-		setLoading(true);
-		api.manager
-			.createExpert(username, email, password, specializations)
-			.then(() => {
-				notify.success("Expert successfully created");
-				navigate("/");
-			})
-			.catch((err) => notify.error(err.detail ?? err))
-			.finally(() => setLoading(false));
-	};
+    const specializationOptions = specializations
+        .map(specialization => ({
+            label: specialization.name,
+            value: specialization.id,
+        }))
 
-	useEffect(() => {
-		setLoadingSpecializations(true)
-		api.ticket.getSpecializations()
-			.then((specialization) => {
-				const mappedSpecializations = specialization.map(spec => ({
-					label: spec.name,
-					value: spec.id,
-				}));
-				setSpecializations(mappedSpecializations);
-			})
-			.catch((err) => notify.error(err))
-			.finally(() => setLoadingSpecializations(false))
-	}, []);
-	
+    const initialValues = {
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        specializations: []
+    }
 
-	return (
-		<Formik
-			initialValues={{
-				username: "",
-				email: "",
-				password: "",
-				confirmPassword: "",
-				specializations: [],
-			}}
-			validationSchema={CreateExpertSchema}
-			onSubmit={(values) => handleSubmit(values)}
-		>
-			{({ touched, isValid }) => {
-				const disableSubmit =
-					(!touched.username &&
-						!touched.email &&
-						!touched.password &&
-						!touched.confirmPassword &&
-						!touched.specializations) ||
-					!isValid ||
-					loading || loadingSpecializations;
-				return (
-					<Form>
-						<Row>
-							{fields.createExpert.map((props, idx) => {
-								return (
-									<Col key={`input-${props.id}`} xs={12} sm={6}>
-										<InputField
-											id={props.id}
-											type={props.type}
-											name={props.name}
-											placeholder={props.placeholder}
-										/>
-									</Col>
-								);
-							})}
-						</Row>
-						<Row>
-							<MultiSelect
-								name={"specializations"}
-								options={specializations}
-								placeholder={"Select specializations..."}
-							/>
-						</Row>
-						<Button
-							variant="primary"
-							type="submit"
-							className="p-2 rounded-3 my-4 w-100 fw-semibold"
-							disabled={disableSubmit}
-						>
-							{loading && (
-								<Spinner
-									animation="grow"
-									size="sm"
-									as="span"
-									role="status"
-									aria-hidden="true"
-									className="me-2"
-								/>
-							)}
-							Create
-						</Button>
-					</Form>
-				);
-			}}
-		</Formik>
-	);
-};
+    const CreateExpertSchema = Yup.object().shape({
+        username: Yup.string().required(),
+        email: Yup.string().email().required(),
+        password: Yup.string().password().required(),
+        confirmPassword: Yup.string()
+            .oneOf([Yup.ref("password"), null], "Passwords must match")
+            .required(),
+        specializations: Yup.array()
+            .of(Yup.number().integer())
+            .min(1, "Select at least 1 specialization")
+    })
+
+    const handleCancel = () => {
+        navigate(-1, {replace: true})
+    }
+
+    const handleSubmit = ({username, email, password, specializations}) => {
+        setLoading(true);
+        api.manager
+            .createExpert(username, email, password, specializations)
+            .then(() => {
+                notify.success("Expert successfully created");
+                navigate("/manager/experts");
+            })
+            .catch((err) => console.log(err))
+            .finally(() => setLoading(false));
+    };
+
+    return <Formik initialValues={initialValues} validationSchema={CreateExpertSchema} onSubmit={handleSubmit}>
+        {({touched, isValid}) => {
+            const disableSubmit = (Object.values(touched).length === 0 && isValid) || !isValid || loading;
+
+            return (
+                <Form>
+                    <Row>
+                        {fields.createExpert.map(props =>
+                            <Col key={`input-${props.name}`} xs={12} sm={6}>
+                                <InputField {...props} />
+                            </Col>
+                        )}
+                    </Row>
+
+                    <MultiSelect
+                        name={"specializations"}
+                        options={specializationOptions}
+                        placeholder={"Select specializations..."}
+                    />
+
+                    <FormActions disableSubmit={disableSubmit} loading={loading} onCancel={handleCancel}/>
+                </Form>
+            );
+        }}
+    </Formik>
+
+}
+
+const FormActions = ({disableSubmit, loading, onCancel}) => <Row>
+    <Col xs={12} lg={6}>
+        <Button
+            variant="secondary"
+            className="py-2 px-5 rounded-3 my-5 fw-semibold w-100"
+            onClick={onCancel}
+        >
+            Go back
+        </Button>
+    </Col>
+
+    <Col xs={12} lg={6}>
+        <SubmitButton loading={loading} disabled={disableSubmit}>
+            Create expert
+        </SubmitButton>
+    </Col>
+</Row>
 
 export default CreateExpertForm;

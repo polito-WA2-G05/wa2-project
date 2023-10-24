@@ -1,51 +1,43 @@
 // Imports
-import { useState, useEffect } from 'react'
-import { Spinner } from 'react-bootstrap';
+import {useEffect, useState} from 'react'
+import {Col} from "react-bootstrap";
 
 // Components
-import { ProductsTable } from '@components'
+import {Loader} from '@components/layout'
+import {ProductsTable} from '@components'
 
 // Services
 import api from '@services'
 
 // Hooks
-import { useNotification } from '@hooks';
+import {useNotification} from '@hooks';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+
     const notify = useNotification()
 
     useEffect(() => {
         api.product.getAllProducts()
-            .then((items) => {
-                setProducts(items)
-            })
-            .catch((err) => {
-                if (err.status === 404) {
-                    setProducts([])
-                } else { notify.error(err.detail ?? err) }
-            })
+            .then((items) => setProducts(items))
+            .catch((err) => notify.error(err.detail ?? err))
             .finally(() => setLoading(false));
-    }, [])
-
+    }, []) // eslint-disable-line
 
     if (!loading)
         return (
-            <div className='text-center'>
-                {products.length === 0 ? <h3 className={"fw-bold fs-2 mb-4"}>No products found</h3> :
-                    <>
-                        <h3 className={"fw-bold mb-4 fs-2 text-center"}>All products</h3>
-                        <ProductsTable products={products} />
-                    </>
+            <>
+                {products.length === 0 ? <h4 className={"text-center fw-bold"}>No products have been found</h4> :
+                    <Col xs={12} lg={11} className='text-center align-self-start'>
+                        <h1 className={"fw-bold my-5"}>All products</h1>
+                        <ProductsTable products={products}/>
+                    </Col>
                 }
-            </div>
+            </>
         )
 
-    return <div className="d-flex justify-content-center align-items-center w-100">
-        <Spinner animation='border' size='xl' as='span' role='status' aria-hidden='true' className='me-2' />
-        <h2>Loading...</h2>
-    </div>
+    return <Loader/>
 }
 
 export default Products

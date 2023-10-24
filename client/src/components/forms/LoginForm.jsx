@@ -1,7 +1,6 @@
 // Imports
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Spinner, Button } from 'react-bootstrap';
 import { Formik, Form } from "formik";
 import * as Yup from 'yup';
 
@@ -10,33 +9,35 @@ import { Role } from "@utils"
 import fields from "./fields"
 
 // Components
-import { InputField } from "@components/forms";
+import { InputField, SubmitButton } from "@components/forms";
 
 // Services
 import api from '@services';
 
 // Hooks
-import { useSessionStorage, useNotification } from "@hooks"
+import { useNotification } from "@hooks"
+import { SessionContext } from "@contexts";
 
 const LoginForm = () => {
-    const { setSession } = useSessionStorage()
     const [loading, setLoading] = useState(false);
+
+    const { saveSession } = useContext(SessionContext)
 
     const navigate = useNavigate();
     const notify = useNotification();
 
+    const initialValues = { username: "", password: "" }
+
     const LoginSchema = Yup.object().shape({
-        username: Yup.string().required('Username is mandatory'),
-        password: Yup.string().required('Password is mandatory')
+        username: Yup.string().required(),
+        password: Yup.string().required()
     })
 
-    const handleSubmit = (values) => {
-        const { username, password } = values;
+    const handleSubmit = ({ username, password }) => {
         setLoading(true)
-
         api.auth.login(username.trim(), password)
             .then((user) => {
-                setSession(user)
+                saveSession(user)
                 notify.success(`Welcome back, ${user.info.name ?? user.details.username}`);
                 navigate(user.details.authorities[0] === Role.EXPERT ? '/tickets' : '/tickets/search', { replace: true });
             })
@@ -45,33 +46,17 @@ const LoginForm = () => {
     }
 
     return (
-        <Formik
-            initialValues={{ username: '', password: '' }}
-            validationSchema={LoginSchema}
-            onSubmit={(values) => handleSubmit(values)}
-        >
+        <Formik initialValues={initialValues} validationSchema={LoginSchema} onSubmit={handleSubmit}>
             {({ touched, isValid }) => {
-                const disableSubmit = (!touched.username && !touched.password) || !isValid || loading;
-                return (
-                    <Form>
-                        {fields.login.map((props, idx) => (
-                            <InputField key={idx} {...props} />
-                        ))}
-                        <Button variant="primary" type="submit" className='p-2 rounded-3 my-4 w-100 fw-semibold'
-                            disabled={disableSubmit}>
-                            {loading &&
-                                <Spinner
-                                    animation='grow'
-                                    size='sm'
-                                    as='span'
-                                    role='status'
-                                    aria-hidden='true'
-                                    className='me-2' />
-                            }
-                            Sign In
-                        </Button>
-                    </Form>
-                )
+                const disableSubmit = (Object.values(touched).length === 0 && isValid) || !isValid || loading;
+
+                return <Form>
+                    {fields.login.map(props => (
+                        <InputField key={props.name} {...props} />
+                    ))}
+                    <SubmitButton loading={loading} disabled={disableSubmit}>Login</SubmitButton>
+                </Form>
+
             }}
         </Formik>
     );

@@ -10,6 +10,22 @@ const product = {
 		);
 	},
 
+	getMyProducts: () => {
+		return new Promise((resolve, reject) =>
+			req.get(`/customer/purchases/products`)
+				.then((res) => resolve(res.data))
+				.catch((err) => reject(err.response.data))
+		);
+	},
+
+	registerPurchase: (purchaseId) => {
+		return new Promise((resolve, reject)=>{
+			req.put(`/customer/purchases/${purchaseId}/register`, {purchaseId})
+			.then((res) => resolve(res.data) )
+			.catch( (err) => reject(err.response.data) )
+		})
+	},
+
 	getProductByEAN: (ean) => {
 		return new Promise((resolve, reject) => {
 			req.get(`/public/products/${ean}`)
@@ -17,7 +33,6 @@ const product = {
 				.catch((err) => reject(err.response.data));
 		});
 	},
-
 };
 
 export default product;

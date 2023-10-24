@@ -1,24 +1,24 @@
-const ChatMessage = ({ received, message, ts }) => {
+const ChatMessage = ({ received, message, timestamp }) => {
     
     const messageStyle = {
-      backgroundColor: received === true ? '#007BFF' : '#f0f0f0',
-      color: received === true ? '#fff' : '#333',
+      backgroundColor: !received ? '#007BFF' : '#f0f0f0',
+      color: !received ? '#fff' : '#333',
       padding: '8px',
       margin: '8px',
       borderRadius: '18px',
       display: 'inline-block',
       width: '40%',
-      float: received === true ? 'right' : 'left',
+      float: !received ? 'right' : 'left',
     };
-    //ts 
-    const datetime=new Date().toLocaleString().split(",");
-    const date= datetime[0];
-    const hour= datetime[1];
+    
+    const datetime = new Date(timestamp).toLocaleString().split(",");
+    const date = datetime[0];
+    const hour = datetime[1];
 
     return (
-      <div className={`${received && "ms-auto"}`} style={messageStyle}>
-        <p style={{ color: !received  ? 'gray' : 'black' }}>{date} {hour}</p>
-        <p>{message}</p>
+      <div className={`${!received ? "ms-auto" : "me-auto"}`} style={messageStyle}>
+        <small style={{ color: !received  ? 'white' : 'gray' }}>{date} {hour}</small>
+        <p className={"mt-2 fw-semibold"}>{message}</p>
     </div>
     );
   };

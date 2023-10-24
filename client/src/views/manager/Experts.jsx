@@ -1,55 +1,45 @@
 //Imports
-import { useState, useEffect } from 'react'
-import { Spinner } from 'react-bootstrap';
+import {useContext, useEffect, useState} from 'react'
 
 // Components
-import { ExpertsTable } from '@components'
+import {Loader} from '@components/layout'
+import {ExpertsTable} from '@components'
 
 // Services
 import api from '@services'
 
-// Hooks
-import { useNotification } from '@hooks';
+import {SessionContext} from '@contexts';
+import {Col} from "react-bootstrap";
+
 const Experts = () => {
     const [experts, setExperts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const notify = useNotification()
-    console.log(experts)
+
+    const {onError} = useContext(SessionContext)
 
     useEffect(() => {
         if (loading) {
             api.manager.getExperts()
-                .then(experts => {
-                    setExperts(experts)
-                })
-                .catch(err => {
-                    if (err.status === 404) {
-                        setExperts([])
-                    } else { notify.error(err.details ?? err) }
-                })
+                .then(experts => setExperts(experts))
+                .catch(onError)
                 .finally(() => setLoading(false))
         }
-    }, [])
+    }, []) // eslint-disable-line
 
 
     if (!loading)
         return (
-            <div className='text-center'>
-                {experts.length === 0 ? <h3 className={"fw-bold fs-2 mb-4"}>There are currently no tickets for the experts</h3> :
-                    <>
-                        <h3 className={"fw-bold mb-4 fs-2 text-center"}>Experts</h3>
-                        <ExpertsTable experts={experts} />
-                    </>
+            <>
+                {experts.length === 0 ? <h4 className={"text-center fw-bold"}>No experts have been found</h4> :
+                    <Col xs={12} lg={11} className='text-center align-self-start'>
+                        <h1 className={"fw-bold my-5"}>Experts</h1>
+                        <ExpertsTable experts={experts}/>
+                    </Col>
                 }
-            </div>
+            </>
         )
 
-    return <div className="d-flex justify-content-center align-items-center w-100">
-        <Spinner animation='border' size='xl' as='span' role='status' aria-hidden='true' className='me-2' />
-        <h2>Loading...</h2>
-    </div>
-
+    return <Loader/>
 }
-
 
 export default Experts;

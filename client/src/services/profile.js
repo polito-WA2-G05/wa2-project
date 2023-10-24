@@ -1,9 +1,17 @@
 import req from "./config";
 
 const profile = {
-	editProfile: (name, surname, email) => {
+	getProfile: () => {
 		return new Promise((resolve, reject) => {
-			req.put(`/customer/profiles/${email}`, {
+			req.get(`/customer/profiles/me`)
+				.then((res) => resolve(res.data))
+				.catch((err) => reject(err.response.data));
+		});
+	},
+
+	editProfile: (name, surname) => {
+		return new Promise((resolve, reject) => {
+			req.put(`/customer/profiles/me`, {
 				name, surname
 			})
 				.then((res) => resolve(res.data))

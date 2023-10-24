@@ -1,5 +1,5 @@
-export {default as InputField} from "./InputField"
-export {default as MultiSelect} from "./MultiSelect"
+export * from "./core"
+
 export {default as LoginForm} from "./LoginForm"
 export {default as SignupForm} from "./SignupForm"
 export {default as CreateExpertForm} from "./CreateExpertForm"

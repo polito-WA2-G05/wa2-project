@@ -7,21 +7,18 @@ const useSessionStorage = () => {
     }
 
     const [session, setSession] = useState(getSession())
-    const [loggedIn, setLoggedIn] = useState(session ? true : false)
 
     const saveSession = (session) => {
         sessionStorage.setItem('session', JSON.stringify(session))
         setSession(session)
-        setLoggedIn(true)
     }
 
     const deleteSession = () => {
         sessionStorage.removeItem('session')
         setSession(null)
-        setLoggedIn(false)
     }
 
-    return { setSession: saveSession, deleteSession, session, loggedIn }
+    return { setSession: saveSession, deleteSession, session }
 }
 
 export default useSessionStorage

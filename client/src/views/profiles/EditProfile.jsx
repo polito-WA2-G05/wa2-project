@@ -2,17 +2,13 @@
 import {Col} from 'react-bootstrap'
 
 // Components
-import { EditProfileForm } from "@components/forms";
+import {EditProfileForm} from "@components/forms";
 
 const EditProfile = () => {
-    return (
-        <div>
-        <h1 className="fw-extrabold text-center">Edit Your Profile</h1>
-        <Col xs={{ span: 12 }} lg={{ span: 4 }} className="mx-auto">
-            <EditProfileForm />
-        </Col>
-    </div>
-    );
+    return <Col xs={12} lg={4}>
+        <h1 className="fw-bold my-5 text-center">Edit your profile</h1>
+        <EditProfileForm/>
+    </Col>
 }
 
 export default EditProfile

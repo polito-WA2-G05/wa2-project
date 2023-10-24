@@ -1,6 +1,6 @@
 // Imports
-import React, { useState } from "react";
-import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
+import React, { useContext, useState } from "react";
+import { Modal, Button, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -22,11 +22,17 @@ import { useNotification } from "@hooks";
 
 // Utils
 import { Rating } from "@utils";
+import { SessionContext } from "@contexts";
+import { NotificationContext } from "@contexts";
 
 YupPassword(Yup);
 
 const SurveyModal = ({ show, onHide, onConfirm, ticketId }) => {
 	const [loading, setLoading] = useState(false);
+
+	const {onError} = useContext(SessionContext)
+	const {sendNotification} = useContext(NotificationContext)
+
 	const notify = useNotification();
 	const navigate = useNavigate();
 
@@ -58,8 +64,11 @@ const SurveyModal = ({ show, onHide, onConfirm, ticketId }) => {
 				onConfirm(ticket)
 				notify.success("Survey successfully sent");
 				navigate("/tickets");
+				sendNotification({
+					text: `The survey for the ticket #${ticket.id} has been sent. Ticket can be closed.`
+				}, true)
 			})
-			.catch((err) => notify.error(err.detail ?? err))
+			.catch(onError)
 			.finally(() => setLoading(false));
 
 		handleClose();

@@ -1,102 +1,97 @@
 // Imports
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Spinner, Button, } from "react-bootstrap";
-import { Formik, Form } from "formik";
+import {useContext, useState} from "react";
+import {useNavigate} from "react-router-dom";
+import {Button, Col, Row} from "react-bootstrap";
+import {Form, Formik} from "formik";
 import * as Yup from "yup";
 
 import fields from "./fields";
 
 // Components
-import { InputField } from "@components/forms";
+import {InputField, SubmitButton} from "@components/forms";
 
 // Services
 import api from "@services";
 
 // Hooks
-import { useSessionStorage, useNotification } from "@hooks";
+import {useNotification} from "@hooks";
+
+// Contexts
+import {SessionContext} from "@contexts";
 
 const EditProfileForm = () => {
-	const { session, setSession } = useSessionStorage();
-	const [loading, setLoading] = useState(false);
+    const {session, saveSession, onError} = useContext(SessionContext);
+    const [loading, setLoading] = useState(false);
 
-	const navigate = useNavigate();
-	const notify = useNotification();
+    const navigate = useNavigate();
+    const notify = useNotification();
 
-	const EditProfileSchema = Yup.object().shape({
-		name: Yup.string().required("Name is mandatory"),
-		surname: Yup.string().required("Surname is mandatory"),
-	});
+    const initialValues = {
+        name: session.info.name,
+        surname: session.info.surname
+    }
 
-	const handleSubmit = (values) => {
-		const { name, surname } = values;
-		setLoading(true);
+    const EditProfileSchema = Yup.object().shape({
+        name: Yup.string().required(),
+        surname: Yup.string().required(),
+    });
 
-		api.profile
-			.editProfile(name, surname, session.info.email)
-			.then((user) => {
-				const updatedSession = {
-					...session,
-					info: {
-						...session.info,
-						name: user.name,
-						surname: user.surname,
-					},
-				};
-				setSession(updatedSession);
-				notify.success("Your info has been successfully edited!");
-				navigate("/me", { replace: true });
-			})
-			.catch((err) => notify.error(err.detail ?? err))
-			.finally(() => setLoading(false));
-	};
+    const handleSubmit = ({name, surname}) => {
+        setLoading(true);
+        api.profile.editProfile(name, surname)
+            .then((user) => {
+                const updatedSession = {
+                    ...session,
+                    info: {
+                        ...session.info,
+                        name: user.name,
+                        surname: user.surname,
+                    },
+                };
+                saveSession(updatedSession);
+                navigate(-1, {replace: true});
+                notify.success("Your info has been successfully edited!");
+            })
+            .catch(onError)
+            .finally(() => setLoading(false))
+    };
 
-	return (
-		<Formik
-			initialValues={{ name: session.info.name, surname: session.info.surname }}
-			validationSchema={EditProfileSchema}
-			onSubmit={(values) => handleSubmit(values)}
-		>
-			{({ touched, isValid }) => {
-				const disableSubmit =
-					(!touched.name && !touched.surname) || !isValid || loading;
-				return (
-					<Form>
-						{fields.editProfile.map((props, idx) => (
-							<InputField key={idx} {...props} />
-						))}
-						<div className="d-flex align-items-center justify-content-between">
-							<Button
-								variant="secondary"
-								className="p-2 rounded-3 my-4 me-5 w-100 fw-semibold"
-								onClick={() => navigate('/me', { replace: true })}
-							>
-								Go Back
-							</Button>
-							<Button
-								variant="primary"
-								type="submit"
-								className="p-2 rounded-3 my-4 w-100 fw-semibold"
-								disabled={disableSubmit}
-							>
-								{loading && (
-									<Spinner
-										animation="grow"
-										size="sm"
-										as="span"
-										role="status"
-										aria-hidden="true"
-										className="me-2"
-									/>
-								)}
-								Submit
-							</Button>
-						</div>
-					</Form>
-				);
-			}}
-		</Formik>
-	);
+    return <Formik initialValues={initialValues} validationSchema={EditProfileSchema} onSubmit={handleSubmit}>
+        {({values, isValid}) => {
+            const disableSubmit = (!values.name && !values.surname) || !isValid || loading;
+
+            return (
+                <Form>
+                    {fields.editProfile.map((props, idx) => (
+                        <InputField key={`input-${props.name}`} {...props} />
+                    ))}
+                    <FormActions
+                        disableSubmit={disableSubmit}
+                        loading={loading}
+                        onCancel={() => navigate(-1, {replace: true})}
+                    />
+                </Form>
+            );
+        }}
+    </Formik>
 };
+
+const FormActions = ({disableSubmit, loading, onCancel}) => <Row>
+    <Col xs={12} lg={6}>
+        <Button
+            variant="secondary"
+            className="py-2 px-5 rounded-3 my-5 fw-semibold w-100"
+            onClick={onCancel}
+        >
+            Go back
+        </Button>
+    </Col>
+
+    <Col xs={12} lg={6}>
+        <SubmitButton loading={loading} disabled={disableSubmit}>
+            Edit profile
+        </SubmitButton>
+    </Col>
+</Row>
 
 export default EditProfileForm;

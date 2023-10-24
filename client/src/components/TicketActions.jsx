@@ -1,11 +1,11 @@
 // Imports
-import { useState } from "react";
-import { Button, Modal, Form } from "react-bootstrap";
+import { useContext, useState } from "react";
+import { Button } from "react-bootstrap";
 import { ResolveModal, PriorityModal, SurveyModal } from "@components"
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 // Hooks
-import { useSessionStorage, useNotification } from "@hooks";
+import { useNotification } from "@hooks";
 
 // Services
 import api from "@services";
@@ -17,9 +17,11 @@ import { BsFillTrashFill, BsSend, BsArrowCounterclockwise, BsFillSignStopFill, B
 
 // Utils
 import { TicketStatus, Role } from "@utils";
+import { SessionContext, NotificationContext } from "@contexts";
 
 const TicketActions = ({ ticket, handleUpdate }) => {
-    const { session } = useSessionStorage();
+    const { session, onError } = useContext(SessionContext);
+    const { sendNotification } = useContext(NotificationContext)
     const navigate = useNavigate()
     const notify = useNotification();
     const authority = session.details.authorities[0];
@@ -37,16 +39,47 @@ const TicketActions = ({ ticket, handleUpdate }) => {
             stop: api.ticket.stopTicket,
             resolve: api.ticket.resolveTicket,
         };
+
         const actionFunction = actionMap[action];
 
         if (actionFunction) {
             actionFunction(...args)
                 .then((ticket) => {
-                    console.log(ticket)
                     handleUpdate(ticket);
+
+                    const notifications = []
+    
+                    switch (action) {
+                        case "close": notifications
+                            .push({
+                                receiver: ticket.customer.id,
+                                text: `Your ticket (${ticket.id}) has been closed`
+                            })
+                            break
+                        case "inProgress": notifications
+                            .push(
+                                {
+                                    receiver: ticket.expert.id,
+                                    text: `A new ticket (#${ticket.id}) has been assigned to you`
+                                },
+                                {
+                                    receiver: ticket.customer.id,
+                                    text: `Your ticket (${ticket.id}) has been taken over by an expert`
+                                })
+                                break
+                        case "resolve": notifications
+                            .push({
+                                receiver: ticket.customer.id,
+                                text: `Your ticket (${ticket.id}) has been resolved. Please, fill out the survey.`,
+                            })
+                            break
+                        default: break
+                    }
+
+                    notifications.forEach(notification => sendNotification(notification))
                     notify.success("Ticket has been successfully updated");
                 })
-                .catch((err) => notify.error(err.detail ?? err));
+                .catch(onError)
         }
     };
 
@@ -68,7 +101,7 @@ const TicketActions = ({ ticket, handleUpdate }) => {
                 <>
                     {ticket.status === TicketStatus.OPEN || ticket.status === TicketStatus.REOPENED ? (
                         <>
-                            <Button variant="success" onClick={() => setShowResolveModal(true)}>
+                            <Button className={"ms-3 py-2 px-3 rounded-3 fw-semibold"} variant="success" onClick={() => setShowResolveModal(true)}>
                                 <BsFillPatchCheckFill size={15} className="me-2" />
                                 Resolve Ticket
                             </Button>
@@ -78,11 +111,11 @@ const TicketActions = ({ ticket, handleUpdate }) => {
                                 onHide={() => setShowResolveModal(false)}
                                 onConfirm={handleConfirmResolveModal}
                             />
-                            <Button className="mx-3" onClick={() => handleTicketAction("close", authority, ticket.id)} variant="danger">
+                            <Button className="ms-3 py-2 px-3 rounded-3 fw-semibold" onClick={() => handleTicketAction("close", authority, ticket.id)} variant="danger">
                                 <HiArchiveBoxXMark size={15} className="me-2" />
                                 Close Ticket
                             </Button>
-                            <Button onClick={() => setShowPriorityModal(true)}>
+                            <Button className={"ms-3 py-2 px-3 rounded-3 fw-semibold"} onClick={() => setShowPriorityModal(true)}>
                                 <HiUserPlus size={15} className="me-2" />
                                 Assign Expert
                             </Button>
@@ -92,8 +125,8 @@ const TicketActions = ({ ticket, handleUpdate }) => {
                                 onConfirm={handleConfirmPriorityModal} />
                         </>
                     ) : (
-                        ticket.status === TicketStatus.RESOLVED && ticket.survey && (
-                            <Button className="mx-3" onClick={() => handleTicketAction("close", authority, ticket.id)} variant="danger">
+                        ticket.status === TicketStatus.RESOLVED && (
+                            <Button className="ms-3 py-2 px-3 rounded-3 fw-semibold" onClick={() => handleTicketAction("close", authority, ticket.id)} variant="danger" disabled={!ticket.survey}>
                                 <HiArchiveBoxXMark size={15} className="me-2" />
                                 Close Ticket
                             </Button>
@@ -105,14 +138,15 @@ const TicketActions = ({ ticket, handleUpdate }) => {
             {authority === Role.CUSTOMER && (
                 <>
                     {ticket.status === TicketStatus.IN_PROGRESS && (
-                        <Button className="me-3" onClick={() => navigate(`/tickets/${ticket.id}/chat`)} style={{ backgroundColor: '#32CD32', color: '#FFFFFF' }}>
+                        <Button className="ms-3 py-2 px-3 rounded-3 fw-semibold" onClick={() => navigate(`/tickets/${ticket.id}/chat`)} style={{ backgroundColor: '#32CD32', color: '#FFFFFF' }}>
                             <ImBubble size={15} className="me-2" />
                             Chat
                         </Button>
+
                     )}
                     {(ticket.status === TicketStatus.RESOLVED && !ticket.survey) && (
                         <>
-                            <Button className="me-3" onClick={() => setShowSurveyModal(true)} variant="success">
+                            <Button className="ms-3 py-2 px-3 rounded-3 fw-semibold" onClick={() => setShowSurveyModal(true)} variant="success">
                                 <BsSend size={15} className="me-2" />
                                 Send Survey
                             </Button>
@@ -120,17 +154,17 @@ const TicketActions = ({ ticket, handleUpdate }) => {
                                 show={showSurveyModal}
                                 onHide={() => setShowSurveyModal(false)}
                                 onConfirm={handleConfirmSurveyModal}
-                                ticketId = {ticket.id} />
+                                ticketId={ticket.id} />
                         </>
                     )}
                     {(ticket.status === TicketStatus.CLOSED || ticket.status === TicketStatus.RESOLVED) && (
-                        <Button className="me-3" onClick={() => handleTicketAction("reopen", ticket.id)} variant="warning">
+                        <Button className="ms-3 py-2 px-3 rounded-3 fw-semibold" onClick={() => handleTicketAction("reopen", ticket.id)} variant="warning">
                             <BsArrowCounterclockwise size={15} className="me-2" />
                             Reopen Ticket
                         </Button>
                     )}
                     {[TicketStatus.OPEN, TicketStatus.REOPENED, TicketStatus.IN_PROGRESS].includes(ticket.status) &&
-                        <Button onClick={() => handleTicketAction("cancel", ticket.id)} variant="danger">
+                        <Button className={"ms-3 py-2 px-3 rounded-3 fw-semibold"} onClick={() => handleTicketAction("cancel", ticket.id)} variant="danger">
                             <BsFillTrashFill size={15} className="me-2" />
                             Cancel Ticket
                         </Button>
@@ -139,19 +173,19 @@ const TicketActions = ({ ticket, handleUpdate }) => {
             )}
             {ticket.status === TicketStatus.IN_PROGRESS && authority === Role.EXPERT && (
                 <>
-                    <Button onClick={() => handleTicketAction("stop", ticket.id)}>
+                    <Button className={"ms-3 py-2 px-3 rounded-3 fw-semibold"} onClick={() => handleTicketAction("stop", ticket.id)}>
                         <BsFillSignStopFill size={15} className="me-2" />
                         Stop Ticket
                     </Button>
-                    <Button className="mx-3" onClick={() => handleTicketAction("close", authority, ticket.id)} variant="danger">
+                    <Button className={"ms-3 py-2 px-3 rounded-3 fw-semibold"} onClick={() => handleTicketAction("close", authority, ticket.id)} variant="danger">
                         <HiArchiveBoxXMark size={15} className="me-2" />
                         Close Ticket
                     </Button>
-                    <Button variant="success" onClick={() => handleTicketAction("resolve", authority, ticket.id, null)}>
+                    <Button className={"ms-3 py-2 px-3 rounded-3 fw-semibold"} variant="success" onClick={() => handleTicketAction("resolve", authority, ticket.id, null)}>
                         <BsFillPatchCheckFill size={15} className="me-2" />
                         Resolve Ticket
                     </Button>
-                    <Button className="me-3" onClick={() => { }} style={{ backgroundColor: '#32CD32', color: '#FFFFFF' }}>
+                    <Button className={"ms-3 py-2 px-3 rounded-3 fw-semibold"} onClick={() => navigate(`/tickets/${ticket.id}/chat`)} style={{ backgroundColor: '#32CD32', color: '#FFFFFF' }}>
                         <ImBubble size={15} className="me-2" />
                         Chat
                     </Button>

@@ -33,8 +33,7 @@ const fields = {
     ],
     createTicket: [
         { id: "title", type: "text", name: "title", placeholder: "Title" },
-        { id: "description", as: "textarea", name: "description", placeholder: "Description", rows: 3 },
-        { id: "productEAN", type: "text", name: "productEAN", placeholder: "Product EAN" },
+        { id: "description", as: "textarea", name: "description", placeholder: "Description", rows: 5 },
         {
             id: "specialization",
             name: "specialization",

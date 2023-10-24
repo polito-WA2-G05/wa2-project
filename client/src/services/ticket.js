@@ -1,7 +1,7 @@
 import req from "./config";
 
 // Utils
-import {Role} from '@utils'
+import { Role } from '@utils'
 
 const ticket = {
 	getTicket: (role, ticketId) => {
@@ -32,7 +32,7 @@ const ticket = {
 
 	getTickets: (role, product) => {
 		return new Promise((resolve, reject) => {
-			req.get(`/${role}/tickets${!product ? "" : "?product=" + product}`)
+			req.get(`/${role.toLowerCase()}/tickets${!product ? "" : "?product=" + product}`)
 				.then((res) => resolve(res.data))
 				.catch((err) => reject(err.response.data));
 		})
@@ -80,7 +80,7 @@ const ticket = {
 
 	resolveTicket: (role, ticketId, description) => {
 		return new Promise((resolve, reject) => {
-			const body = role === Role.MANAGER ? {description} : {}
+			const body = role === Role.MANAGER ? { description } : {}
 			req.patch(`/${role.toLowerCase()}/tickets/${ticketId}/resolve`, body)
 				.then((res) => resolve(res.data))
 				.catch((err) => reject(err.response.data));
@@ -100,8 +100,16 @@ const ticket = {
 			req.post(`/customer/tickets/${ticketId}/survey`, {
 				serviceValuation, professionality, comment
 			})
-			.then((res) => resolve(res.data))
-			.catch((err) => reject(err.response.data));
+				.then((res) => resolve(res.data))
+				.catch((err) => reject(err.response.data));
+		})
+	},
+
+	getMessagesHistory: (role, ticketId) => {
+		return new Promise((resolve, reject) => {
+			req.get(`/${role}/tickets/${ticketId}/messages/history`)
+				.then((res) => resolve(res.data))
+				.catch((err) => reject(err.response.data));
 		})
 	}
 };

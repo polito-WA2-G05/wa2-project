@@ -30,7 +30,17 @@ const useNotification = () => {
                 theme: 'colored',
                 ...notification,
             });
-        }
+        },
+
+        info: (response) => {
+            toast.info(response, {
+                type: toast.TYPE.INFO,
+                position: toast.POSITION.TOP_CENTER,
+                theme: 'colored',
+                ...notification,
+            });
+        },
+
     }
 
     return notify;

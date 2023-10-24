@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const SERVER_URL = "/api"
+export const SOCKET_URL = "http://localhost:8080/ws"
 
 const req = axios.create({
     baseURL: SERVER_URL,
@@ -18,8 +19,7 @@ req.interceptors.request.use(async (config) => {
     const session = JSON.parse(sessionStorage.getItem('session'))
     if (session) {
         config.headers = {
-            Authorization: `Bearer ${session.details.accessToken}`,
-            Accept: "application/json"
+            Authorization: `Bearer ${session.details.accessToken}`
         }
     }
 

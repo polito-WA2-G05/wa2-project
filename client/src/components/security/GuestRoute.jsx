@@ -1,20 +1,20 @@
 // Import
-import { useEffect } from "react"
+import { useEffect, useContext } from "react"
 import { Outlet, useNavigate } from "react-router-dom";
 
 // Context
-import { useSessionStorage } from "@hooks";
+import { SessionContext } from "@contexts";
 
 const GuestRoute = () => {
-    const { loggedIn } =  useSessionStorage()
+    const { session } =  useContext(SessionContext)
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (loggedIn)
+        if (session)
             navigate('/me', { replace: true });
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []); // eslint-disable-line
 
-    if (!loggedIn) return <Outlet />
+    if (!session) return <Outlet />
 }
 
 export default GuestRoute;

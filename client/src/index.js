@@ -5,17 +5,22 @@ import "bootstrap/dist/css/bootstrap.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { BrowserRouter } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import {BrowserRouter} from "react-router-dom";
+import {ToastContainer} from "react-toastify";
+import {NotificationProvider, SessionProvider} from '@contexts'
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-	<React.StrictMode>
-		<ToastContainer newestOnTop={false} style={{zIndex: 999999}} />
-		<BrowserRouter>
-			<App />
-		</BrowserRouter>
-	</React.StrictMode>
+    <React.StrictMode>
+        <ToastContainer newestOnTop={false} style={{zIndex: 999999}}/>
+        <BrowserRouter>
+            <SessionProvider>
+                <NotificationProvider>
+                    <App/>
+                </NotificationProvider>
+            </SessionProvider>
+        </BrowserRouter>
+    </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function

@@ -1,100 +1,90 @@
 // Imports
-import { useState, useEffect } from 'react'
-import { Spinner, Form, Row, Col } from 'react-bootstrap';
-import Select from "react-select"
+import {useContext, useEffect, useState} from 'react'
+import {Col, Form, Row} from 'react-bootstrap';
 
 // Components
-import { ChangesTable } from '@components'
+import {Loader} from "@components/layout"
+import {ChangesTable} from '@components'
 
 // Services
 import api from '@services'
 
-// Hooks
-import { useNotification } from '@hooks';
+import {SessionContext} from '@contexts';
 
 const Changes = () => {
     const [changes, setChanges] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const [ticketIdFilter, setIdFilter] = useState(null);
-    const [expertFilter, setUsername] = useState(null)
+    const [ticket, setTicket] = useState(null);
+    const [expert, setExpert] = useState(null)
 
-    const notify = useNotification();
+    const {onError} = useContext(SessionContext)
+
+    const filteredChanges = changes.filter(change => {
+        if (ticket == null && expert == null)
+            return true;
+        else if (ticket && expert == null)
+            return String(change.ticket.id).startsWith(ticket)
+        else if (ticket === null && expert)
+            return change.expert?.username.startsWith(expert)
+
+        return String(change.ticket.id).startsWith(ticket) && change.expert?.username.startsWith(expert);
+    })
 
     useEffect(() => {
-        if (loading) {
+        if (loading)
             api.ticket.getChanges()
-                .then(changes => {
-                    setChanges(changes)
-                })
-                .catch(err => {
-                    if (err.status === 404) {
-                        setChanges([])
-                    } else { notify.error(err.detail ?? err) }
-                })
+                .then(changes => setChanges(changes))
+                .catch(onError)
                 .finally(() => setLoading(false))
-        }
-    }, [])
+    }, []) // eslint-disable-line
 
-    const handleUsernameChanged = (e) => {
-        const username = e.target.value
-        if (username) setUsername(username)
-        else setUsername(null)
+    const handleExpertChange = (expert) => {
+        setExpert(expert || null)
     }
 
-    const handleTicketIdChanged = (e) => {
-        const idString = e.target.value
-        if (idString) setIdFilter(parseInt(idString))
-        else setIdFilter(null)
+    const handleTicketChange = (ticket) => {
+        setTicket(ticket || null)
     }
-
 
     if (!loading)
         return (
-            <div className='text-center'>
-                {changes.length === 0 ? <h3 className={"fw-bold fs-2 mb-4"}>No changes found</h3> :
-                    <>
-                        <h3 className={"fw-bold mb-4 fs-2 text-center"}>All changes</h3>
-                        <Row className='my-4'>
-                            <Col xs= {12} lg={6}>
-                                <Form.Control
-                                    className='d-flex flex-column my-4 mx-auto'
-                                    type="text"
-                                    placeholder="Filter by ticket ID"
-                                    onChange={handleTicketIdChanged}
-                                />
-                            </Col>
-                            <Col xs= {12} lg={6}>
-                                <Form.Control
-                                    className='d-flex flex-column my-4 mx-auto'
-                                    type="text"
-                                    placeholder="Filter by expert username"
-                                    onChange={handleUsernameChanged}
-                                />
-                            </Col>
-                        </Row>
-                        <ChangesTable changes={
-                            changes.filter((change) => {
-                                if (ticketIdFilter == null && expertFilter == null) {
-                                    return true;
-                                } else if (ticketIdFilter && expertFilter == null) {
-                                    return change.ticket.id === ticketIdFilter;
-                                } else if (ticketIdFilter === null && expertFilter) {
-                                    return change.expert?.username.startsWith(expertFilter);
-                                }
-                                return change.ticket.id === ticketIdFilter && change.expert?.username.startsWith(expertFilter);
-                            })} />
-                    </>
+            <>
+                {changes.length === 0 ? <h4 className={"text-center fw-bold"}>No changes have been found</h4> :
+                    <Col xs={12} lg={11} className='text-center align-self-start'>
+                        <h1 className={"fw-bold my-5"}>Changes Log</h1>
+                        <Filters onTicketChange={handleTicketChange} onExpertChange={handleExpertChange}/>
+                        {filteredChanges.length ?
+                            <ChangesTable changes={filteredChanges}/>
+                            : <h4 className={"my-5"}>No changes found for active filters</h4>
+                        }
+                    </Col>
                 }
-            </div>
+            </>
         )
 
-    return <div className="d-flex justify-content-center align-items-center w-100">
-        <Spinner animation='border' size='xl' as='span' role='status' aria-hidden='true' className='me-2' />
-        <h2>Loading...</h2>
-    </div>
-
-
+    return <Loader/>
 }
+
+const Filters = ({onTicketChange, onExpertChange}) => (
+    <Row className='my-5'>
+        <Col xs={12} lg={6}>
+            <Form.Control
+                id="ticket-filter"
+                type="text"
+                placeholder="Filter by Ticket Id"
+                onChange={(e) => onTicketChange(e.target.value)}
+            />
+        </Col>
+        <Col xs={12} lg={6}>
+            <Form.Control
+                id="expert-filter"
+                type="text"
+                placeholder="Filter by Expert Username"
+                onChange={(e) => onExpertChange(e.target.value)}
+            />
+        </Col>
+    </Row>
+)
 
 export default Changes

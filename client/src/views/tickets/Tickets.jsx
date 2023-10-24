@@ -1,120 +1,136 @@
 // Imports
-import React, { useState, useEffect } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import Select from "react-select"
-import { useSearchParams } from "react-router-dom";
-import { Row, Col, Spinner } from "react-bootstrap";
+import {useNavigate, useSearchParams} from "react-router-dom";
+import {Button, Col} from "react-bootstrap";
 
 // Components
-import { TicketAccordion } from "@components";
+import {Loader} from "@components/layout";
+import {TicketAccordion} from "@components";
 
 // Services
 import api from '@services'
 
-// Hooks
-import { useSessionStorage, useNotification } from "@hooks"
-
 //Utils
-import { TicketStatus, Role } from "@utils";
+import {Role, TicketStatus} from "@utils";
+
+// Contexts
+import {SessionContext} from "@contexts";
 
 const Tickets = () => {
-	const [loading, setLoading] = useState(true)
-	const [tickets, setTickets] = useState([])
-	const [statusFilter, setStatusFilter] = useState([])
+    const {role, onError} = useContext(SessionContext)
 
-	const [searchParams] = useSearchParams()
+    const [tickets, setTickets] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [statusFilter, setStatusFilter] = useState([])
 
-	const { session } = useSessionStorage()
-	const notify = useNotification();
+    const [searchParams] = useSearchParams()
 
-	const states = [
-		{ label: TicketStatus.OPEN, value: 0 },
-		{ label: TicketStatus.REOPENED, value: 1 },
-		{ label: TicketStatus.IN_PROGRESS, value: 2 },
-		{ label: TicketStatus.CANCELLED, value: 3 },
-		{ label: TicketStatus.RESOLVED, value: 4 },
-		{ label: TicketStatus.CLOSED, value: 5 }
-	]
+    const filteredTickets = tickets.filter(ticket =>
+        statusFilter.length === 0 ? true :
+            statusFilter.includes(ticket.status)
+    )
 
-	const handleUpdate = (updatedTicket) => {
-		setTickets((oldTickets) => {
-			const index = oldTickets.findIndex((ticket) => ticket.id === updatedTicket.id);
+    const handleUpdate = (updatedTicket) => {
+        setTickets((oldTickets) => {
+            const index = oldTickets.findIndex(ticket =>
+                ticket.id === updatedTicket.id
+            )
 
-			const newTickets = [...oldTickets];
-			newTickets[index] = updatedTicket;
+            const newTickets = [...oldTickets];
+            newTickets[index] = updatedTicket;
 
-			console.log("index: " + index)
-			console.log("updatedTicket: " + updatedTicket)
-			console.log("newTickets: " + newTickets)
+            return newTickets;
+        });
+    };
 
-			return newTickets;
-		});
-	};
+    const handleFilterChange = (selectedStates) => {
+        setStatusFilter(selectedStates.map(status => status.label))
+    }
 
-	const handleFilterStatus = (selectedStates) => {
-		setStatusFilter(selectedStates.map(status => status.label))
-	}
+    useEffect(() => {
+        if (loading)
+            api.ticket.getTickets(role, searchParams.get("product"))
+                .then(tickets => {
+                    const sortedTickets = tickets.sort((el1, el2) => {
+                        const el1CreatedAt = new Date(el1.createdDate)
+                        const el2CreatedAt = new Date(el2.createdDate)
+                        return el2CreatedAt - el1CreatedAt
+                    })
+                    setTickets(sortedTickets)
+                })
+                .catch((err) => err?.status !== 404 && onError(err))
+                .finally(() => setLoading(false))
+    }, []) // eslint-disable-line
 
-	useEffect(() => {
-		if (loading)
-			api.ticket.getTickets(session.details.authorities[0].toLowerCase(), searchParams.get("product"))
-				.then((tickets) => {
-					setTickets(tickets)
-				})
-				.catch((err) => {
-					if (err.status === 404) {
-						setTickets([])
-					} else { notify.error(err.detail ?? err) }
-				})
-				.finally(() => setLoading(false))
-	}, [])
+    if (!loading)
+        return (
+            <>
+                {tickets.length === 0 ? <NotFoundView role={role}/>
+                    : <Col xs={12} lg={8} className="my-5">
+                        <div className={"my-5 text-center"}>
+                            <h1 className={"fw-bold"}>
+                                {role === Role.MANAGER ? "All Tickets" : "Your Tickets"}
+                            </h1>
+                            {searchParams.get("product") && <h5>For product #{searchParams.get("product")}</h5>}
+                        </div>
 
-	if (loading)
-		return <div className="d-flex justify-content-center align-items-center w-100">
-			<Spinner animation='border' size='xl' as='span' role='status' aria-hidden='true' className='me-2' />
-			<h2>Loading...</h2>
-		</div>
+                        {role !== Role.EXPERT &&
+                            <StatusFilter onFilterChange={handleFilterChange}/>
+                        }
 
-	return (
-		<Row>
-			<Col xs={12} lg={8} className="mx-auto">
-				<div className="d-flex flex-column justify-content-center">
-					{tickets.length === 0 ? (
-						<h1 className="text-center mb-4">
-							{session.details.authorities[0] === Role.EXPERT ? " No tickets assigned to you" : "No tickets have been found"}
-						</h1>
-					) : (
-						<>
-							<h1 className="text-center mb-4">{session.details.authorities[0] === Role.MANAGER ? "All Tickets" : "Your Tickets"}</h1>
+                        {filteredTickets.length !== 0 ? filteredTickets.map(ticket =>
+                                <TicketAccordion
+                                    key={ticket.id}
+                                    handleUpdate={handleUpdate}
+                                    ticket={ticket}
+                                    setTickets={setTickets}
+                                />
+                            ) :
+                            <h4 className={"fw-bold text-center"}>
+                                No tickets with selected filters have been found
+                            </h4>
+                        }
+                    </Col>
+                }
+            </>
+        );
 
-							{session.details.authorities[0] !== Role.EXPERT &&
-								<Select
-									className="my-5 w-50 mx-auto"
-									name={"filterStatus"}
-									onChange={handleFilterStatus}
-									placeholder={"Filter by status"}
-									options={states}
-									isMulti={true}
-									styles={{
-										container: (baseStyles, state) => ({
-										  ...baseStyles,
-										  zIndex: 99
-										}),
-									  }}
-								/>
-							}
-
-							{tickets.filter(ticket =>
-								statusFilter.length === 0 ? true :
-									statusFilter.includes(ticket.status))
-								.map((ticket) => (
-									<TicketAccordion handleUpdate={handleUpdate} key={ticket.id} ticket={ticket} setTickets={setTickets} />
-								))}
-						</>
-					)}
-				</div>
-			</Col>
-		</Row>
-	);
+    return <Loader/>
 };
+
+const StatusFilter = ({onFilterChange}) => {
+    return <Select
+        className="my-5 w-50 mx-auto"
+        name={"filterStatus"}
+        onChange={onFilterChange}
+        placeholder={"Filter by status"}
+        options={TicketStatus.allCases}
+        isMulti={true}
+        styles={{
+            container: (baseStyles) => ({
+                ...baseStyles,
+                zIndex: 99
+            }),
+        }}
+    />
+
+}
+
+const NotFoundView = (role) => {
+    const navigate = useNavigate()
+
+    const onGoBack = () => navigate(-1, {replace: true})
+
+    return <div className="d-flex flex-column align-items-center text-center">
+        <h4 className={"fw-bold"}>
+            {role === Role.EXPERT ? "No tickets assigned to you"
+                : "No tickets have been found"}
+        </h4>
+        <Button onClick={onGoBack} className="py-2 px-5 rounded-3 my-5 fw-semibold">
+            Go Back
+        </Button>
+    </div>
+}
 
 export default Tickets;

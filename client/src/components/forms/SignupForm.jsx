@@ -1,7 +1,7 @@
 // Imports
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Spinner, Button, Row, Col } from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import YupPassword from "yup-password";
@@ -9,7 +9,7 @@ import YupPassword from "yup-password";
 import fields from "./fields";
 
 // Components
-import { InputField } from "@components/forms";
+import { InputField, SubmitButton } from "@components/forms";
 
 // Services
 import api from "@services";
@@ -20,31 +20,37 @@ import { useNotification } from "@hooks";
 YupPassword(Yup);
 
 const SignupForm = () => {
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(false)
 
-	const notify = useNotification();
-	const navigate = useNavigate();
+	const notify = useNotification()
+	const navigate = useNavigate()
+
+	const initialValues = {
+		username: "",
+		email: "",
+		password: "",
+		confirmPassword: "",
+		name: "",
+		surname: "",
+	}
 
 	const SignupSchema = Yup.object().shape({
-		username: Yup.string().required("Username is mandatory"),
-		email: Yup.string().email().required("Email is mandatory"),
-		password: Yup.string().password().required("Password is mandatory"),
+		username: Yup.string().required(),
+		email: Yup.string().email().required(),
+		password: Yup.string().password().required(),
 		confirmPassword: Yup.string()
 			.oneOf([Yup.ref("password"), null], "Passwords must match")
 			.required(),
-		name: Yup.string().required("Name is mandatory"),
-		surname: Yup.string().required("Surname is mandatory"),
-	});
+		name: Yup.string().required(),
+		surname: Yup.string().required()
+	})
 
-	const handleSubmit = (values) => {
-		const { username, email, password, name, surname } = values;
+	const handleSubmit = ({ username, email, password, name, surname }) => {
 		setLoading(true);
 		api.auth
 			.signup(username, email, password, name, surname)
-			.then((res) => {
-				notify.success(
-					`${(res.username, res.email)} You have been successfully registered`
-				);
+			.then(() => {
+				notify.success("You have been successfully registered");
 				navigate("/login", { replace: true });
 			})
 			.catch((err) => notify.error(err.detail ?? err))
@@ -52,62 +58,24 @@ const SignupForm = () => {
 	};
 
 	return (
-		<Formik
-			initialValues={{
-				username: "",
-				email: "",
-				password: "",
-				confirmPassword: "",
-				name: "",
-				surname: "",
-			}}
-			validationSchema={SignupSchema}
-			onSubmit={(values) => handleSubmit(values)}
-		>
+		<Formik initialValues={initialValues} validationSchema={SignupSchema} onSubmit={handleSubmit}>
 			{({ touched, isValid }) => {
-				const disableSubmit =
-					(!touched.username &&
-						!touched.email &&
-						!touched.password &&
-						!touched.name &&
-						!touched.surname &&
-						!touched.confirmPassword) ||
-					!isValid ||
-					loading;
+				const disableSubmit = (Object.values(touched).length === 0 && isValid) || !isValid || loading
+
 				return (
 					<Form>
 						<Row>
-							{fields.signup.map((props, idx) => {
+							{fields.signup.map(props => {
 								return (
-									<Col key={idx} xs={12} sm={6}>
-										<InputField
-											id={props.id}
-											type={props.type}
-											name={props.name}
-											placeholder={props.placeholder}
-										/>
+									<Col key={props.name} xs={12} sm={6}>
+										<InputField {...props} />
 									</Col>
 								);
 							})}
 						</Row>
-						<Button
-							variant="primary"
-							type="submit"
-							className="p-2 rounded-3 my-4 w-100 fw-semibold"
-							disabled={disableSubmit}
-						>
-							{loading && (
-								<Spinner
-									animation="grow"
-									size="sm"
-									as="span"
-									role="status"
-									aria-hidden="true"
-									className="me-2"
-								/>
-							)}
-							Sign In
-						</Button>
+						<SubmitButton loading={loading} disabled={disableSubmit}>
+							Sign Up
+						</SubmitButton>
 					</Form>
 				);
 			}}

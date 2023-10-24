@@ -1,82 +1,75 @@
 // Imports
-import { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
-import { Spinner, Card } from "react-bootstrap";
+import {useEffect, useState} from "react";
+import {useNavigate, useParams} from "react-router-dom";
+import {Button, Card, Col, Row} from "react-bootstrap";
 
 // Components
-import { InfoCard } from "@components";
+import {Loader} from "@components/layout";
+import {InfoCard} from "@components";
 
 // Services
 import api from "@services";
 
 // Hooks
-import { useNotification } from "@hooks";
+import {useNotification} from "@hooks";
 
 const Product = () => {
-	const { ean } = useParams();
-	const location = useLocation();
-	const { state } = location;
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-	const [product, setProduct] = useState(null);
-	const [loading, setLoading] = useState(true);
+    const {ean} = useParams();
+    const navigate = useNavigate();
 
-	const notify = useNotification();
+    const notify = useNotification();
 
-	useEffect(() => {
-		if (loading) {
-			if (!state?.product) {
-				api.product
-					.getProductByEAN(ean)
-					.then((product) => setProduct(product))
-					.catch((err) => {
-						setProduct(null)
-						if (err.status !== 404)
-							notify.error(err.detail ?? err);
-					})
-					.finally(() => setLoading(false));
-			} else {
-				setProduct(state.product);
-				setLoading(false);
-			}
-		}
-	}, []);
+    useEffect(() => {
+        if (loading) {
+            api.product.getProductByEAN(ean)
+                .then(product => setProduct(product))
+                .catch((err) => err?.status !== 404 && notify.error(err.detail ?? err))
+                .finally(() => setLoading(false));
+        }
+    }, []); // eslint-disable-line
 
-	if (!loading)
-		return (
-			<>
-				{product ? (
-					<InfoCard headerTitle={`Product Info`} contentTitle={`Product EAN #${product.ean}`}>
-						{[
-							{ label: "Name", value: product.name },
-							{ label: "Brand", value: product.brand }
-						].map((info) => (
-							<Card.Text key={`product-${ean}-${info.label}`}>
-								<strong>{info.label}</strong>
-								<p>{info.value}</p>
-							</Card.Text>
-						))}
-					</InfoCard>
-				) : (
-					<h3 className={"fw-bold fs-2 text-center"}>
-						Product #{ean} not found
-					</h3>
-				)}
-			</>
-		);
+    const onGoBack = () => navigate(-1, {replace: true})
 
-	return (
-		<div className="d-flex justify-content-center align-items-center w-100">
-			<Spinner
-				animation="border"
-				size="xl"
-				as="span"
-				role="status"
-				aria-hidden="true"
-				className="me-2"
-			/>
-			<h2>Loading...</h2>
-		</div>
-	);
+    if (!loading)
+        return (
+            <>
+                {product ? (
+                    <Row className="my-5 align-self-start">
+                        <Col xs={2} className={"d-flex justify-content-center align-items-start"}>
+                            <Button variant={"outline-primary"} onClick={onGoBack}
+                                    className="py-2 px-5 rounded-3 fw-semibold mx-auto">
+                                Go Back
+                            </Button>
+                        </Col>
+                        <Col xs={12} lg={{span: 8}}>
+                            <InfoCard headerTitle={`Product Info`} contentTitle={`Product EAN #${product.ean}`}>
+                                {[
+                                    {label: "Name", value: product.name},
+                                    {label: "Brand", value: product.brand}
+                                ].map((info) => (
+                                    <Card.Text key={`product-${ean}-${info.label}`}>
+                                        <strong>{info.label}</strong>
+                                        <p>{info.value}</p>
+                                    </Card.Text>
+                                ))}
+                            </InfoCard>
+                        </Col>
+                    </Row>
+                ) : (
+                    <div className="d-flex flex-column align-items-center">
+                        <h4 className={"fw-bold"}>Product #{ean} not found</h4>
+                        <Button onClick={onGoBack} className="py-2 px-5 rounded-3 my-5 fw-semibold">
+                            Go Back
+                        </Button>
+                    </div>
+                )}
+            </>
+        );
+
+    return <Loader/>
 };
 
 export default Product;
