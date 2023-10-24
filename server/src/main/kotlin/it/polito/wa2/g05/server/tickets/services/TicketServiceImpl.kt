@@ -10,6 +10,8 @@ import it.polito.wa2.g05.server.products.ProductNotFoundException
 import it.polito.wa2.g05.server.products.repositories.ProductRepository
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
 import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
+import it.polito.wa2.g05.server.purchases.PurchaseNotFoundException
+import it.polito.wa2.g05.server.purchases.repository.PurchaseRepository
 import it.polito.wa2.g05.server.tickets.*
 import it.polito.wa2.g05.server.tickets.entities.Change
 import it.polito.wa2.g05.server.tickets.entities.Employee
@@ -35,6 +37,7 @@ class TicketServiceImpl(
     private val ticketRepository: TicketRepository,
     private val profileRepository: ProfileRepository,
     private val productRepository: ProductRepository,
+    private val purchaseRepository: PurchaseRepository,
     private val employeeRepository: EmployeeRepository,
     private val changeRepository: ChangeRepository,
     private val specializationRepository: SpecializationRepository,
@@ -45,6 +48,7 @@ class TicketServiceImpl(
 
     private val log = LoggerFactory.getLogger("TicketServiceImpl")
 
+    @Transactional
     override fun createTicket(data: CreateTicketFormDTO, token: String): TicketDTO {
         val customerId = UserDetails(jwtDecoder.decode(token)).uuid
         val customer = profileRepository.findById(customerId)
@@ -58,6 +62,10 @@ class TicketServiceImpl(
                 log.error("Product with ${data.productEan} not found")
                 ProductNotFoundException(data.productEan)
             }
+
+        if (!purchaseRepository.findAllByProfile(customer).flatMap { it.products }.contains(product)) {
+            throw ForbiddenActionException("You have not purchased product on which you want to open the ticket")
+        }
 
         val specialization = specializationRepository.findById(data.specializationId)
             .orElseThrow {
