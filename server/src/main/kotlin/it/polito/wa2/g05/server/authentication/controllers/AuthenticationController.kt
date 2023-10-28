@@ -29,6 +29,7 @@ class AuthenticationController(private val authenticationService: Authentication
     @PostMapping("/anonymous/auth/signup")
     @ResponseStatus(HttpStatus.CREATED)
     fun signup(@RequestBody @Valid data: UserFormDTO<ProfileDetailsDTO>, br: BindingResult): CreatedUserDTO {
+        log.info("Anonymous user signup")
         if (br.hasErrors())
             throw ValidationException(br.fieldErrors)
         return authenticationService.signup(data)
@@ -39,6 +40,7 @@ class AuthenticationController(private val authenticationService: Authentication
     @PostMapping("/manager/auth/createExpert")
     @ResponseStatus(HttpStatus.CREATED)
     fun createExpert(@RequestBody @Valid data: UserFormDTO<ExpertDetailsDTO>, br: BindingResult): CreatedUserDTO {
+        log.info("Manager creates expert")
         if (br.hasErrors())
             throw ValidationException(br.fieldErrors)
         return authenticationService.createExpert(data)
@@ -48,6 +50,7 @@ class AuthenticationController(private val authenticationService: Authentication
 
     @PostMapping("/anonymous/auth/login")
     fun login(@RequestBody @Valid credentials: CredentialsDTO, br: BindingResult): AuthenticatedUserDTO {
+        log.info("User login")
         if (br.hasErrors())
             throw ValidationException(br.fieldErrors)
 
@@ -58,6 +61,7 @@ class AuthenticationController(private val authenticationService: Authentication
 
     @PostMapping("/public/auth/refresh-token")
     fun refreshToken(@RequestBody @Valid data: RefreshTokenDTO, br: BindingResult): RefreshedTokensDTO {
+        log.info("User refresh token")
         if (br.hasErrors()) throw ValidationException(br.fieldErrors)
         return authenticationService.refreshToken(data)
     }
@@ -66,6 +70,7 @@ class AuthenticationController(private val authenticationService: Authentication
 
     @DeleteMapping("/authenticated/auth/logout")
     fun logout(@RequestHeader("Authorization") token: String): ResponseEntity<Unit> {
+        log.info("User logout")
         return authenticationService
             .logout(token.removePrefix("Bearer").trim())
     }

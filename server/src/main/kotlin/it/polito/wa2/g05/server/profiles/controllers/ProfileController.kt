@@ -21,7 +21,7 @@ class ProfileController(private val profileService: ProfileService) {
 
     @GetMapping("/customer/profiles/me")
     fun getProfile(@RequestHeader("Authorization") token: String): ProfileDTO {
-        log.info("Customer get the profile")
+        log.info("Customer get his profile")
         return profileService.getProfile(token)
     }
 
@@ -35,7 +35,7 @@ class ProfileController(private val profileService: ProfileService) {
     ): ProfileDTO {
         if (br.hasErrors())
             throw ValidationException(br.fieldErrors)
-        log.info("Customer updates profile")
+        log.info("Customer updates his profile")
         return profileService.updateProfile(token, data)
     }
 }

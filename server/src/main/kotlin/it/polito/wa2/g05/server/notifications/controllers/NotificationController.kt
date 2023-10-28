@@ -19,17 +19,17 @@ class NotificationController(
     private val template: SimpMessagingTemplate,
     private val notificationService: NotificationService
 ) {
-    private val log = LoggerFactory.getLogger("MessageController")
+    private val log = LoggerFactory.getLogger("NotificationController")
 
     @GetMapping("/api/authenticated/notifications")
     fun getNotificationsHistory(@RequestHeader("Authorization") token: String): List<NotificationDTO> {
-        log.info("Customer gets notifications history")
+        log.info("User gets notifications history")
         return notificationService.getNotificationsHistory(token)
     }
 
     @DeleteMapping("/api/authenticated/notifications/{id}")
-    fun deleteNotification(@RequestHeader("Authorization") token: String, @PathVariable("id") id: String) {
-        log.info("Customer gets notifications history")
+    fun deleteNotification(@RequestHeader("Authorization") token: String, @PathVariable("id") id: String): List<NotificationDTO> {
+        log.info("User delete the notification with id = $id")
         return notificationService.deleteNotification(token, id)
     }
 
@@ -38,8 +38,8 @@ class NotificationController(
     @MessageMapping("/notifications")
     fun receiveNotification(@Payload data: SendNotificationDTO) {
         val receiver = data.receiver
-        notificationService.saveNotification(data)
-        template.convertAndSendToUser(receiver, "/notifications", data)
+        val notification = notificationService.saveNotification(data)
+        template.convertAndSendToUser(receiver, "/notifications", notification)
         return
     }
 
@@ -49,8 +49,8 @@ class NotificationController(
     fun managersReceiveNotification(@Payload data: ManagersNotificationDTO) {
         notificationService.getManagerIdentifiers().forEach {
             val sendNotificationDTO = SendNotificationDTO(data.text, it, data.timestamp)
-            notificationService.saveNotification(sendNotificationDTO)
-            template.convertAndSendToUser(it, "/notifications", sendNotificationDTO)
+            val notification = notificationService.saveNotification(sendNotificationDTO)
+            template.convertAndSendToUser(it, "/notifications", notification)
         }
 
         return

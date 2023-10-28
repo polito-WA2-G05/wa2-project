@@ -64,6 +64,7 @@ class TicketServiceImpl(
             }
 
         if (!purchaseRepository.findAllByProfile(customer).flatMap { it.products }.contains(product)) {
+            log.error("Product ${data.productEan} has not been purchased by customer $customerId")
             throw ForbiddenActionException("You have not purchased product on which you want to open the ticket")
         }
 
@@ -115,7 +116,7 @@ class TicketServiceImpl(
         }
 
         if (ticketRepository.getCustomer(id) != customer) {
-            log.error("You are not allowed to perform this action")
+            log.error("Customer not allowed to perform this action")
             throw ForbiddenActionException("You are not allowed to perform this action")
         }
 
@@ -132,8 +133,6 @@ class TicketServiceImpl(
 
         changeRepository.save(Change(currentStatus, TicketStatus.CANCELLED, Date(), ticket, ticket.expert))
         this.removeExpert(ticket)
-
-
 
         return ticket.toDTO()
     }
@@ -154,7 +153,7 @@ class TicketServiceImpl(
         }
 
         if (ticketRepository.getExpert(id) != expert) {
-            log.error("You are not allowed to perform this action")
+            log.error("Expert not allowed to perform this action")
             throw ForbiddenActionException("You are not allowed to perform this action")
         }
 
@@ -164,6 +163,7 @@ class TicketServiceImpl(
             log.error("Status can't be set to CLOSE from $currentStatus")
             throw TicketStatusNotValidException("Status can't be set to CLOSE from $currentStatus")
         }
+        
         ticketRepository.updateStatus(id, TicketStatus.CLOSED, Date())
         val ticket = ticketRepository.findById(id).get()
         changeRepository.save(Change(currentStatus, TicketStatus.CLOSED, Date(), ticket, ticket.expert))
@@ -216,7 +216,7 @@ class TicketServiceImpl(
         }
 
         if (ticketRepository.getCustomer(id) != customer) {
-            log.error("You are not allowed to perform this action")
+            log.error("Customer not allowed to perform this action")
             throw ForbiddenActionException("You are not allowed to perform this action")
         }
 
@@ -248,6 +248,7 @@ class TicketServiceImpl(
             return ticket.toDTO()
         }
 
+        log.error("Status can't be set to REOPEN from $currentStatus")
         throw TicketStatusNotValidException("Status can't be set to REOPENED from $currentStatus")
     }
 
@@ -308,7 +309,7 @@ class TicketServiceImpl(
             throw TicketNotFoundException(id)
         }
         if (ticketRepository.getExpert(id) != expert) {
-            log.error("You are not allowed to perform this action")
+            log.error("Expert not allowed to perform this action")
             throw ForbiddenActionException("You are not allowed to perform this action")
         }
 
@@ -374,7 +375,7 @@ class TicketServiceImpl(
         }
 
         if (ticketRepository.getExpert(id) != expert) {
-            log.error("You are not allowed to perform this action")
+            log.error("Expert not allowed to perform this action")
             throw ForbiddenActionException("You are not allowed to perform this action")
         }
 
@@ -416,7 +417,7 @@ class TicketServiceImpl(
         }
 
         if (ticketRepository.getCustomer(id) != customer) {
-            log.error("You are not allowed to perform this action")
+            log.error("Customer not allowed to perform this action")
             throw ForbiddenActionException("You are not allowed to perform this action")
         }
 
@@ -438,7 +439,7 @@ class TicketServiceImpl(
         }
 
         if (ticketRepository.getExpert(id) != expert) {
-            log.error("You are not allowed to perform this action")
+            log.error("Expert not allowed to perform this action")
             throw ForbiddenActionException("You are not allowed to perform this action")
         }
 
@@ -532,7 +533,7 @@ class TicketServiceImpl(
         }
 
         if (ticketRepository.getCustomer(id) != customer) {
-            log.error("You are not allowed to perform this action")
+            log.error("Customer not allowed to perform this action")
             throw ForbiddenActionException("You are not allowed to perform this action")
         }
 

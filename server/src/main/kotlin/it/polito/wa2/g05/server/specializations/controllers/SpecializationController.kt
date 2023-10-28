@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/authenticated/specializations")
 class SpecializationController(private val specializationService: SpecializationService) {
+    
     private val log = LoggerFactory.getLogger("SpecializationController")
 
     /* GET /api/authenticated/specializations */

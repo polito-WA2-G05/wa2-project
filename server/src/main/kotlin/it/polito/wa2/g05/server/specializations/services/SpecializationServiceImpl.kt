@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service
 @Observed
 @Service
 class SpecializationServiceImpl(private val specializationRepository: SpecializationRepository): SpecializationService {
-    private val log = LoggerFactory.getLogger("SpecializationServiceImpl")
 
     override fun getAllSpecializations(): List<SpecializationDTO> =
         specializationRepository.findAll().map { it.toDTO() }

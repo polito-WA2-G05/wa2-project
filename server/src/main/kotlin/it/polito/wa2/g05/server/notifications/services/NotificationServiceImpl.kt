@@ -40,36 +40,44 @@ class NotificationServiceImpl(
     }
 
     @Transactional
-    override fun saveNotification(data: SendNotificationDTO) {
+    override fun saveNotification(data: SendNotificationDTO): NotificationDTO {
         val auhthorities = keycloakService.getUserAuthorities(data.receiver)
 
         if (auhthorities.contains(Role.CUSTOMER.roleName)) {
-            if (!profileRepository.existsById(UUID.fromString(data.receiver)))
+            if (!profileRepository.existsById(UUID.fromString(data.receiver))) {
+                log.error("Receiver profile not found")
                 throw ProfileNotFoundException(data.receiver)
+            }
         } else {
-            if (!employeeRepository.existsById(UUID.fromString(data.receiver)))
+            if (!employeeRepository.existsById(UUID.fromString(data.receiver))) {
+                log.error("Receiver employee not found")
                 throw EmployeeNotFoundException(UUID.fromString(data.receiver))
+            }
         }
 
-        notificationRepository.save(Notification(
+        return notificationRepository.save(Notification(
             data.text,
             UUID.fromString(data.receiver),
             data.timestamp
-        ))
+        )).toDTO()
     }
 
-    override fun deleteNotification(token: String, id: String) {
+    override fun deleteNotification(token: String, id: String): List<NotificationDTO> {
         val userId = UserDetails(jwtDecoder.decode(token)).uuid
 
         val notification = notificationRepository.findById(UUID.fromString(id)).orElseThrow {
+            log.error("Notification with id = $id not found")
             throw NotificationNotFoundException(UUID.fromString(id))
         }
 
         if (notification.receiver != userId) {
+            log.error("User is not the receiver. He is not allowed to delete this notification")
             throw ForbiddenActionException("You are not allowed to delete notification with id $id")
         }
 
         notificationRepository.delete(notification)
+
+        return notificationRepository.findAllByReceiver(userId).map { it.toDTO() }
     }
 
     override fun getManagerIdentifiers(): List<String> =

@@ -18,7 +18,7 @@ class PurchaseController(private val purchaseService: PurchaseService) {
 
     @PutMapping("/customer/purchases/{id}/register")
     fun registerPurchease(@RequestHeader("Authorization") token: String, @PathVariable id: UUID) {
-        log.info("Customer registers purchase with id $id")
+        log.info("Customer registers purchase with id = $id")
         purchaseService.register(token, id)
     }
 
@@ -26,7 +26,7 @@ class PurchaseController(private val purchaseService: PurchaseService) {
 
     @GetMapping("/customer/purchases/products")
     fun getPurchasedProducts(@RequestHeader("Authorization") token: String): List<PurchasedProductsDTO> {
-        log.info("Customer gets purchased products")
+        log.info("Customer gets his purchased products")
         return purchaseService.getPurchasedProducts(token)
     }
 }

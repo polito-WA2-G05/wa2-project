@@ -50,7 +50,7 @@ class MessageServiceImpl(
         }
 
         if (ticketRepository.getCustomer(id) != customer) {
-            log.error("You are not allowed to perform this action")
+            log.error("Customer not allowed to perform this action")
             throw ForbiddenActionException("You are not allowed to perform this action")
         }
 
@@ -73,7 +73,7 @@ class MessageServiceImpl(
         }
 
         if (ticketRepository.getExpert(id) != expert) {
-            log.error("You are not allowed to perform this action")
+            log.error("Expert not allowed to perform this action")
             throw ForbiddenActionException("You are not allowed to perform this action")
         }
 
