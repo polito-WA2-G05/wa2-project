@@ -92,7 +92,7 @@ class KeycloakService(
         val userRepresentation = UserRepresentation()
         userRepresentation.username = username
         userRepresentation.email = email
-        userRepresentation.isEmailVerified = true
+        userRepresentation.isEmailVerified = false
         userRepresentation.credentials = listOf(credentialRepresentation)
         userRepresentation.isEnabled = true
         return userRepresentation
@@ -150,7 +150,6 @@ class KeycloakService(
             .get(userUUID.toString())
             .toRepresentation()
 
-
     /**
      * Gets the user authorities, so its client roles, by its UUID.
      *
@@ -189,6 +188,12 @@ class KeycloakService(
 
         val roleRepresentation = this.findRoleByName(role.roleName)
         this.assignRole(userUUID, roleRepresentation)
+
+        keycloak
+            .realm(properties.realm)
+            .users()
+            .get(userUUID)
+            .executeActionsEmail(properties.clientId, "http://localhost:3000", mutableListOf("VERIFY_EMAIL"))
 
         return UUID.fromString(userUUID)
     }
