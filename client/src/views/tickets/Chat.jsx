@@ -3,33 +3,34 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import {Navigate, useNavigate, useParams} from "react-router-dom"
 import {Button, Col, Row} from 'react-bootstrap';
 
-
 // Components
 import {Loader} from '@components/layout';
-import {ChatMessage, MessageInput} from '@components';
+import {ChatMessage, MessageInput, UploadedAttachmentsModal} from '@components';
 
-// Hooks
 // Utils
 import {Role, TicketStatus} from "@utils"
 
 // Services
 import api from "@services"
 
+// Contexts
 import {NotificationContext, SessionContext} from '@contexts';
+
+// Hooks
 import {useSocket} from "@hooks";
 
 const Chat = () => {
-    const {session, role, onError} = useContext(SessionContext)
+    const { role, onError} = useContext(SessionContext)
     const {sendNotification} = useContext(NotificationContext)
 
     const [loading, setLoading] = useState(true)
     const [ticket, setTicket] = useState(null)
+    const [showUploadedAttachmentsModal, setShowUploadedAttachmentsModal] = useState(false)
 
     const {ticketId} = useParams()
     const navigate = useNavigate();
 
     const chatRef = useRef(null);
-
 
     const scrollToBottom = () => {
         if (chatRef.current) {
@@ -100,10 +101,14 @@ const Chat = () => {
             {ticket ? (
                 ticket.status !== TicketStatus.IN_PROGRESS ? <Navigate to={"/tickets"} replace/> : (
                     <Row className="my-5 align-self-start">
-                        <Col xs={2} className={"d-flex justify-content-center align-items-start"}>
+                        <Col xs={2} className={"d-flex flex-column align-items-start"}>
                             <Button variant={"outline-primary"} onClick={() => navigate(-1, {replace: true})}
                                     className="py-2 px-5 rounded-3 fw-semibold mx-auto">
                                 Go Back
+                            </Button>
+                            <Button variant={"primary"} onClick={() => setShowUploadedAttachmentsModal(true)}
+                                    className="py-2 px-5 rounded-3 fw-semibold mx-auto mt-4">
+                                Attachments
                             </Button>
                         </Col>
                         <Col xs={12} lg={8} className={"overflow-hidden py-2"}>
@@ -121,7 +126,8 @@ const Chat = () => {
                                     />
                                 ))}
                             </div>
-                            <MessageInput sendMessage={handleSendMessage}/>
+                            <MessageInput sendMessage={handleSendMessage} ticket={ticket}/>
+                            {showUploadedAttachmentsModal && <UploadedAttachmentsModal onCancel={() => setShowUploadedAttachmentsModal(false)} show={showUploadedAttachmentsModal} ticket={ticket}/>}
                         </Col>
                     </Row>
                 )) : <div className="d-flex flex-column align-items-center">

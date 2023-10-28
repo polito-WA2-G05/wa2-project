@@ -24,7 +24,7 @@ const AttachmentModal = ({show, attachment, onCancel, onAttachmentChange, onConf
                 <Button variant="secondary" onClick={onCancel}>
                     Remove attachment
                 </Button>
-                <Button variant="primary" onClick={onConfirm}>
+                <Button variant="primary" onClick={onConfirm} disabled={!attachment}>
                     Add attachment
                 </Button>
             </Modal.Footer>

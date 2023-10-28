@@ -1,18 +1,23 @@
 // Imports
-import React, {useState} from 'react';
-import {Button, Form} from 'react-bootstrap';
+import React, { useContext, useState } from 'react';
+import { Button, Form } from 'react-bootstrap';
 
 // Components
-import {AttachmentModal} from '@components'
+import { AttachmentModal } from '@components'
+
+import { SessionContext } from "@contexts"
+import api from "@services"
 
 // Styles
-import {BsSend} from "react-icons/bs";
-import {ImAttachment} from "react-icons/im"
+import { BsSend } from "react-icons/bs";
+import { ImAttachment } from "react-icons/im"
 
-const MessageInput = ({sendMessage}) => {
+const MessageInput = ({ ticket, sendMessage }) => {
     const [message, setMessage] = useState('');
     const [showAttachmentModal, setShowAttachmentModal] = useState(false);
     const [attachment, setAttachment] = useState(null);
+
+    const { role, onError } = useContext(SessionContext);
 
     const handleInsert = (e) => {
         setMessage(e.target.value);
@@ -26,7 +31,6 @@ const MessageInput = ({sendMessage}) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (message.length > 0) {
-            // sendMessage(message, attachment);
             sendMessage(message)
             setMessage("");
             setAttachment(null);
@@ -40,6 +44,17 @@ const MessageInput = ({sendMessage}) => {
         }
     };
 
+    const handleUploadFile = () => {
+        setShowAttachmentModal(false)
+        let formData = new FormData()
+        formData.append("file", attachment)
+
+        api.utils.uploadAttachment(role, ticket.id, formData)
+            .then((data) => console.log(data))
+            .catch(err => onError(err.detail ?? err))
+            .finally(() => setAttachment(null))
+    }
+
     return (
         <>
             <Form onSubmit={handleSubmit} className="mt-4 d-flex flex-row justify-content-between align-items-center">
@@ -52,10 +67,10 @@ const MessageInput = ({sendMessage}) => {
                     onKeyPress={handleKeyPress}
                 />
                 <Button id="attachment" onClick={() => setShowAttachmentModal(true)} className="p-3 mx-4">
-                    <ImAttachment size={20}/>
+                    <ImAttachment size={20} />
                 </Button>
                 <Button id="message" type="submit" className="p-3" disabled={!message && !attachment}>
-                    <BsSend size={20}/>
+                    <BsSend size={20} />
                 </Button>
             </Form>
             <AttachmentModal
@@ -66,7 +81,7 @@ const MessageInput = ({sendMessage}) => {
                     setAttachment(null)
                 }}
                 onAttachmentChange={handleAttachmentChange}
-                onConfirm={() => setShowAttachmentModal(false)}
+                onConfirm={handleUploadFile}
             />
         </>
     );
