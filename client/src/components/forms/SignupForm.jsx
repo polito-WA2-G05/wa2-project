@@ -50,7 +50,7 @@ const SignupForm = () => {
 		api.auth
 			.signup(username, email, password, name, surname)
 			.then(() => {
-				notify.success("You have been successfully registered");
+				notify.success("You have been successfully registered. Please, confirm your email address before login.");
 				navigate("/login", { replace: true });
 			})
 			.catch((err) => notify.error(err.detail ?? err))

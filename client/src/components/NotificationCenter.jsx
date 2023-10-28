@@ -19,7 +19,7 @@ const NotificationCenter = () => {
             >
                 {notifications.length === 0 ? <Dropdown.ItemText>No notifications</Dropdown.ItemText> :
                     notifications.map((notification, idx) => (
-                        <div key={notification.id}>
+                        <div key={idx}>
                             <div className={"d-flex align-items-center py-2"}>
                                 <Dropdown.Item disabled>
                                     <Dropdown.ItemText className={"fw-bold"}>{notification.text}</Dropdown.ItemText>

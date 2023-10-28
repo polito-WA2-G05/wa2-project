@@ -6,6 +6,7 @@ export {default as PriorityModal} from "./modals/PriorityModal"
 export {default as AttachmentModal} from './modals/AttachmentModal'
 export {default as ResolveModal} from "./modals/ResolveModal"
 export {default as SurveyModal} from "./modals/SurveyModal"
+export {default as UploadedAttachmentsModal} from "./modals/UploadedAttachmentsModal"
 
 export {default as SwitchButton} from "./SwitchButton"
 export {default as InfoCard} from "./InfoCard"

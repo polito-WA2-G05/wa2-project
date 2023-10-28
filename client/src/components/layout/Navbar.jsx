@@ -60,7 +60,7 @@ const LoggedInNavigation = ({session, role, onLogout}) => {
     const navigate = useNavigate();
 
     return (
-    <div className="d-flex">
+    <div className="d-flex align-items-center">
         <NotificationCenter/>
         <Dropdown className="ms-4">
             <DropdownButton

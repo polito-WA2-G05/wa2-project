@@ -1,11 +1,11 @@
-import {createContext, useEffect, useState} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
-import {useNotification} from "@hooks";
-import {useNavigate} from "react-router-dom";
+import { useNotification } from "@hooks";
+import { useNavigate } from "react-router-dom";
 
 const SessionContext = createContext(null)
 
-const SessionProvider = ({children}) => {
+const SessionProvider = ({ children }) => {
     const [reload, setReload] = useState(true)
     const [session, setSession] = useState(null)
 
@@ -25,7 +25,7 @@ const SessionProvider = ({children}) => {
     const onError = (err) => {
         if (err.status === 401) setReload(true)
         else if (err.status === 403) {
-            navigate(-1, {replace: true})
+            navigate(-1, { replace: true })
         } else notify.error(err.detail ?? err)
     }
 
@@ -49,4 +49,4 @@ const SessionProvider = ({children}) => {
         </SessionContext.Provider>
 }
 
-export {SessionProvider, SessionContext};
+export { SessionProvider, SessionContext };
