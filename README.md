@@ -2,10 +2,12 @@
 
 ## Docker
 
-In order to make easy testing the application, a `docker-compose.yml` file has been created in `/server/src/main/docker` directory 
+In order to make easy testing the application, a `docker-compose.yml` file has been created in `/server/src/main/docker`
+directory
 and it includes our server application, our postgres database and keycloak images, already configured and ready-to-use.
 
-You can move to `/server/src/main/docker` directory and execute the following command on terminal to pull our services images:
+You can move to `/server/src/main/docker` directory and execute the following command on terminal to pull our services
+images:
 
 ```bash
 docker-compose pull
@@ -18,6 +20,7 @@ docker-compose up
 ```
 
 Note that:
+
 - server application runs on `http://localhost:8080`
 - keycloak runs on `http://localhost:8081`
 - postgres database runs on `http://localhost:5432`
@@ -25,26 +28,27 @@ Note that:
 ### Observability
 
 Also within `/server/src/main/docker`, you can find the `docker-compose.observability.yml` file.
-In order to run also observability services, i.e. Tempo, Loki, Prometheus and Grafana, you have to execute also the following command:
+In order to run also observability services, i.e. Tempo, Loki, Prometheus and Grafana, you have to execute also the
+following command:
 
 ```bash
 docker-compose -f docker-compose.observability.yml up
 ```
 
 Note that you could see error logs on the Spring Boot server output console if you don't run observability services.
-In order to disable observability on the server application you can edit the `docker-compose.yml` file with the following `environment` for `server` service:
+In order to disable observability on the server application you can edit the `docker-compose.yml` file with the
+following `environment` for `server` service:
 
 ```yml
 services:
   server:
-    image: 'gcr.io/g5project-385811/server:latest'
-    
+    image: "gcr.io/g5project-385811/server:latest"
+
     # Don't change here
-    
+
     environment:
-      
       # Don't change here
-      
+
       - LOKI_ENABLED=false # <--- Change this one from true to false
       - MANAGEMENT_TRACING_ENABLED=false # <--- Change this one from true to false
     env_file:
@@ -52,7 +56,6 @@ services:
 ```
 
 Then you can start services with no error logs using the command above.
-
 
 ### User Credentials
 
@@ -85,11 +88,12 @@ List all registered products in the database
 
 ```json
 [
-    {
-        "ean": 4935531465706,
-        "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-        "brand": "JMT"
-    }
+  {
+    "ean": "4935531465706",
+    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+    "brand": "JMT"
+  },
+  ...
 ]
 ```
 
@@ -101,7 +105,7 @@ List all registered products in the database
 
 #### **`GET /api/public/products/:ean`**
 
-Details of product associated with the provided ean or fail if it does not exist
+Details of product associated with the provided ean
 
 **Request header:**
 
@@ -115,9 +119,9 @@ Details of product associated with the provided ean or fail if it does not exist
 
 ```json
 {
-    "ean": 4935531465706,
-    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-    "brand": "JMT"
+  "ean": "4935531465706",
+  "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+  "brand": "JMT"
 }
 ```
 
@@ -130,25 +134,23 @@ Details of product associated with the provided ean or fail if it does not exist
 
 ### Profiles APIs
 
-#### **`GET /api/customer/profiles/:email`**
+#### **`GET /api/customer/profiles/me`**
 
-Details of user profiles associated with the provided email or fail if it does not exist
+Details of the authenticated user
 
 **Request header:**
 
-- `Params: req.params.email to obtain the required email `
 - `Content-Type: application/json`
 - `Authorization: Bearer <access_token>`
 
 **Response body:**
 
-JSON object containing username e password.
-
 ```json
 {
-    "name": "user",
-    "surname": "surname1" ,
-    "email": "user1@studenti.polito.it"
+  "id": "79c12344-4092-4661-b0b3-287685340d7b",
+  "name": "Mario",
+  "surname": "Rossi",
+  "email": "customer1@mail.com"
 }
 ```
 
@@ -161,24 +163,21 @@ JSON object containing username e password.
 
 ---
 
-#### **`PUT api/customer/profiles/:email`**
+#### **`PUT api/customer/profiles/me`**
 
-Edit a field of a specific profile associated with the email and fail if it does not exist
+Edit the profile of authenticated user
 
 **Request header:**
 
-- `Params: req.params.email to obtain the required email`
 - `Content-Type: application/json`
 - `Authorization: Bearer <access_token>`
 
 **Request body:**
 
-A JSON object containing the data of the changes to be made
-
 ```json
 {
-    "name": "user",
-    "surname": "surname"
+  "name": "Mario",
+  "surname": "Rossi"
 }
 ```
 
@@ -188,9 +187,10 @@ A JSON object containing the data of the changes to be made
 
 ```json
 {
-    "name": "test",
-    "surname": "surname" ,
-    "email": "user2@studenti.polito.it"
+  "id": "79c12344-4092-4661-b0b3-287685340d7b",
+  "name": "Giovanni",
+  "surname": "Rossi",
+  "email": "customer1@mail.com"
 }
 ```
 
@@ -211,7 +211,6 @@ A JSON object containing the data of the changes to be made
 
 Stores a new ticket into the database for a given product
 
-
 **Request header:**
 
 - `Content-Type: application/json`
@@ -219,14 +218,12 @@ Stores a new ticket into the database for a given product
 
 **Request body:**
 
-JSON object containing title, description, productEAN, specializationId
-
 ```json
 {
-    "title": "Broken phone", 
-    "description": "The phone is not turning on since yesterday",
-    "productEAN": 4935531465706, 
-    "specializationId": 1
+  "title": "Broken phone",
+  "description": "The phone is not turning on since yesterday",
+  "productEan": "4935531465706",
+  "specializationId": 1
 }
 ```
 
@@ -236,36 +233,41 @@ JSON object containing title, description, productEAN, specializationId
 
 ```json
 {
-    "id": 2,
-    "status": "OPEN",
-    "title": "Broken phone",
-    "description": "The phone is not turning on since yesterday",
-    "customer": {
-        "name": "Test",
-        "surname": "Test",
-        "email": "test@test.com"
-    },
-    "expert": null,
-    "priorityLevel": null,
-    "product": {
-        "ean": "4935531465706",
-        "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-        "brand": "JMT"
-    },
-    "createdDate": "2023-05-03T14:24:45.173+00:00",
-    "closedDate": null,
-    "specialization": {
-        "id": 1,
-        "name": "COMPUTER"
-    }
+  "id": 2,
+  "status": "OPEN",
+  "title": "Broken phone",
+  "description": "The phone is not turning on since yesterday",
+  "customer": {
+    "id": "79c12344-4092-4661-b0b3-287685340d7b",
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "email": "customer1@mail.com"
+  },
+  "expert": null,
+  "priorityLevel": null,
+  "product": {
+    "ean": "4935531465706",
+    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+    "brand": "JMT"
+  },
+  "createdDate": "2023-05-03T14:24:45.173+00:00",
+  "closedDate": null,
+  "specialization": {
+    "id": 1,
+    "name": "COMPUTER"
+  },
+  "resolvedDescription": null,
+  "survey": null
 }
 ```
 
 **Error responses**
+
 - `HTTP status code 400 Bad Request` (Failed to read Exception)
 - `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 - `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
 - `HTTP status code 403 Forbidden` (Access Denied Exception)
+- `HTTP status code 403 Forbidden` (Product not purchased Exception)
 - `HTTP status code 404 Not Found` (Customer Not Found Exception)
 - `HTTP status code 404 Not Found` (Product Not Found Exception)
 - `HTTP status code 404 Not Found` (Specialization Not Found Exception)
@@ -273,10 +275,9 @@ JSON object containing title, description, productEAN, specializationId
 
 ---
 
-
 #### **`PATCH /api/customer/tickets/:id/cancel`**
 
-Sets to CANCELLED the status field of a specific ticket associated with the id provided and fails if the id does not exist
+Sets to CANCELLED the status field of a specific ticket associated with the id provided
 
 **Request header:**
 
@@ -290,44 +291,49 @@ Sets to CANCELLED the status field of a specific ticket associated with the id p
 
 ```json
 {
-    "id": 2,
-    "status": "CANCELLED",
-    "title": "Broken phone",
-    "description": "The phone is not turning on since yesterday",
-    "customer": {
-        "name": "Test",
-        "surname": "Test",
-        "email": "test@test.com"
-    },
-    "expert": null,
-    "priorityLevel": null,
-    "product": {
-        "ean": "4935531465706",
-        "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-        "brand": "JMT"
-    },
-    "createdDate": "2023-05-03T14:24:45.173+00:00",
-    "closedDate": "2023-05-03T14:33:35.494+00:00",
-    "specialization": {
-        "id": 1,
-        "name": "COMPUTER"
-    }
+  "id": 2,
+  "status": "CANCELLED",
+  "title": "Broken phone",
+  "description": "The phone is not turning on since yesterday",
+  "customer": {
+    "id": "79c12344-4092-4661-b0b3-287685340d7b",
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "email": "customer1@mail.com"
+  },
+  "expert": null,
+  "priorityLevel": null,
+  "product": {
+    "ean": "4935531465706",
+    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+    "brand": "JMT"
+  },
+  "createdDate": "2023-05-03T14:24:45.173+00:00",
+  "closedDate": null,
+  "specialization": {
+    "id": 1,
+    "name": "COMPUTER"
+  },
+  "resolvedDescription": null,
+  "survey": null
 }
 ```
 
 **Error responses**
+
 - `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 - `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
 - `HTTP status code 403 Forbidden` (Access Denied Exception)
 - `HTTP status code 403 Forbidden` (Customer Not Allowed Exception)
 - `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 404 Not Found` (Customer Not Found Exception)
 - `HTTP status code 422 Unprocessable Entity` (Status Transition Exception)
 
 ---
 
-#### **`PATCH /api/{expert,manager}/tickets/:id/close`** 
+#### **`PATCH /api/expert/tickets/:id/close`**
 
-Sets to CLOSED the status field of a specific ticket associated with the id provided and fails if the id does not exist
+Expert sets to CLOSED the status field of a specific ticket associated with the id provided
 
 **Request header:**
 
@@ -341,44 +347,49 @@ Sets to CLOSED the status field of a specific ticket associated with the id prov
 
 ```json
 {
-    "id": 2,
-    "status": "CLOSED",
-    "title": "Broken phone",
-    "description": "The phone is not turning on since yesterday",
-    "customer": {
-        "name": "Test",
-        "surname": "Test",
-        "email": "test@test.com"
-    },
-    "expert": null,
-    "priorityLevel": null,
-    "product": {
-        "ean": "4935531465706",
-        "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-        "brand": "JMT"
-    },
-    "createdDate": "2023-05-03T14:24:45.173+00:00",
-    "closedDate": "2023-05-03T14:33:35.494+00:00",
-    "specialization": {
-        "id": 1,
-        "name": "COMPUTER"
-    }
+  "id": 2,
+  "status": "CLOSED",
+  "title": "Broken phone",
+  "description": "The phone is not turning on since yesterday",
+  "customer": {
+    "id": "79c12344-4092-4661-b0b3-287685340d7b",
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "email": "customer1@mail.com"
+  },
+  "expert": null,
+  "priorityLevel": null,
+  "product": {
+    "ean": "4935531465706",
+    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+    "brand": "JMT"
+  },
+  "createdDate": "2023-05-03T14:24:45.173+00:00",
+  "closedDate": "2023-05-09T17:24:45.173+00:00",
+  "specialization": {
+    "id": 1,
+    "name": "COMPUTER"
+  },
+  "resolvedDescription": null,
+  "survey": null
 }
 ```
 
 **Error responses**
+
 - `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 - `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
 - `HTTP status code 403 Forbidden` (Access Denied Exception)
 - `HTTP status code 403 Forbidden` (Expert Not Allowed Exception)
 - `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 404 Not Found` (Expert Not Found Exception)
 - `HTTP status code 422 Unprocessable Entity` (Status Transition Exception)
 
 ---
 
-#### **`PATCH /api/customer/tickets/:id/reopen`**
+#### **`PATCH /api/manager/tickets/:id/close`**
 
-Sets to REOPENED the status field of a specific ticket associated with the id provided and fails if the id does not exist
+Manager sets to CLOSED the status field of a specific ticket associated with the id provided
 
 **Request header:**
 
@@ -392,45 +403,110 @@ Sets to REOPENED the status field of a specific ticket associated with the id pr
 
 ```json
 {
-    "id": 2,
-    "status": "REOPENED",
-    "title": "Broken phone",
-    "description": "The phone is not turning on since yesterday",
-    "customer": {
-        "name": "Test",
-        "surname": "Test",
-        "email": "test@test.com"
-    },
-    "expert": null,
-    "priorityLevel": null,
-    "product": {
-        "ean": "4935531465706",
-        "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-        "brand": "JMT"
-    },
-    "createdDate": "2023-05-03T14:24:45.173+00:00",
-    "closedDate": "2023-05-03T14:33:35.494+00:00",
-    "specialization": {
-        "id": 1,
-        "name": "COMPUTER"
-    }
+  "id": 2,
+  "status": "CLOSED",
+  "title": "Broken phone",
+  "description": "The phone is not turning on since yesterday",
+  "customer": {
+    "id": "79c12344-4092-4661-b0b3-287685340d7b",
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "email": "customer1@mail.com"
+  },
+  "expert": null,
+  "priorityLevel": null,
+  "product": {
+    "ean": "4935531465706",
+    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+    "brand": "JMT"
+  },
+  "createdDate": "2023-05-03T14:24:45.173+00:00",
+  "closedDate": "2023-05-09T17:24:45.173+00:00",
+  "specialization": {
+    "id": 1,
+    "name": "COMPUTER"
+  },
+  "resolvedDescription": null,
+  "survey": {
+    "serviceValuation": 3,
+    "professionality": 2,
+    "comment": "good job"
+  }
 }
 ```
 
 **Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Access Denied Exception)
+- `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 422 Unprocessable Entity` (Status Transition Exception)
+- `HTTP status code 422 Unprocessable Entity` (Survey not sent yet Exception)
+
+---
+
+#### **`PATCH /api/customer/tickets/:id/reopen`**
+
+Sets to REOPENED the status field of a specific ticket associated with the id provided
+
+**Request header:**
+
+- `Params: req.params.id to obtain the required id`
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+```json
+{
+  "id": 2,
+  "status": "REOPENED",
+  "title": "Broken phone",
+  "description": "The phone is not turning on since yesterday",
+  "customer": {
+    "id": "79c12344-4092-4661-b0b3-287685340d7b",
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "email": "customer1@mail.com"
+  },
+  "expert": null,
+  "priorityLevel": null,
+  "product": {
+    "ean": "4935531465706",
+    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+    "brand": "JMT"
+  },
+  "createdDate": "2023-05-03T14:24:45.173+00:00",
+  "closedDate": null,
+  "specialization": {
+    "id": 1,
+    "name": "COMPUTER"
+  },
+  "resolvedDescription": null,
+  "survey": null
+}
+```
+
+**Error responses**
+
 - `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 - `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
 - `HTTP status code 403 Forbidden` (Access Denied Exception)
 - `HTTP status code 403 Forbidden` (Customer Not Allowed Exception)
 - `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 404 Not Found` (Customer Not Found Exception)
 - `HTTP status code 422 Unprocessable Entity` (Status Transition Exception)
 
 ---
 
 #### **`PATCH /api/manager/tickets/:id/start`**
 
-Sets to IN_PROGRESS the status field of a specific ticket associated with the id provided and fails if the id does not exist.
-Automatically assigning the expert with the lowest "is working on" and the related specialization after having specified its level of priority(between 0 and 3).
+Sets to IN_PROGRESS the status field of a specific ticket associated with the id provided.
+Automatically assigning the expert with the lowest "is working on" and the related specialization after having specified
+its level of priority(between 0 and 3).
 
 **Request header:**
 
@@ -440,11 +516,9 @@ Automatically assigning the expert with the lowest "is working on" and the relat
 
 **Request body:**
 
-JSON object containing priorityLevel
-
 ```json
 {
-    "priorityLevel": 2
+  "priorityLevel": 2
 }
 ```
 
@@ -454,16 +528,20 @@ JSON object containing priorityLevel
 
 ```json
 {
-  "id": 1,
-  "status": "IN_PROGRESS",
-  "title": "Keyboard not working",
-  "description": "The keyboard doesn't react to the key pressing",
+  "id": 2,
+  "status": "REOPENED",
+  "title": "Broken phone",
+  "description": "The phone is not turning on since yesterday",
   "customer": {
-    "name": "Test",
-    "surname": "Test",
-    "email": "test@test.com"
+    "id": "79c12344-4092-4661-b0b3-287685340d7b",
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "email": "customer1@mail.com"
   },
   "expert": {
+    "id": "64c760b6-6e5c-42fb-924d-428d418e32eb",
+    "username": "expert1",
+    "workingOn": 0,
     "specializations": [
       {
         "id": 1,
@@ -473,8 +551,7 @@ JSON object containing priorityLevel
         "id": 2,
         "name": "MOBILE"
       }
-    ],
-    "workingOn": 1
+    ]
   },
   "priorityLevel": "HIGH",
   "product": {
@@ -487,12 +564,14 @@ JSON object containing priorityLevel
   "specialization": {
     "id": 1,
     "name": "COMPUTER"
-  }
+  },
+  "resolvedDescription": null,
+  "survey": null
 }
-
 ```
 
 **Error responses**
+
 - `HTTP status code 400 Bad Request` (Failed to read Exception)
 - `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 - `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
@@ -503,10 +582,9 @@ JSON object containing priorityLevel
 
 ---
 
-
 #### **`PATCH /api/expert/tickets/:id/stop`**
 
-Sets to OPEN the status field of a specific ticket associated with the id provided and fails if the id does not exist
+Sets to OPEN the status field of a specific ticket associated with the id provided
 
 **Request header:**
 
@@ -525,24 +603,13 @@ Sets to OPEN the status field of a specific ticket associated with the id provid
   "title": "Broken phone",
   "description": "The phone is not turning on since yesterday",
   "customer": {
-    "name": "Test",
-    "surname": "Test",
-    "email": "test@test.com"
+    "id": "79c12344-4092-4661-b0b3-287685340d7b",
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "email": "customer1@mail.com"
   },
-  "expert": {
-    "specializations": [
-      {
-        "id": 1,
-        "name": "COMPUTER"
-      },
-      {
-        "id": 2,
-        "name": "MOBILE"
-      }
-    ],
-    "workingOn": 1
-  },
-  "priorityLevel": "MEDIUM",
+  "expert": null,
+  "priorityLevel": null,
   "product": {
     "ean": "4935531465706",
     "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
@@ -553,23 +620,385 @@ Sets to OPEN the status field of a specific ticket associated with the id provid
   "specialization": {
     "id": 1,
     "name": "COMPUTER"
-  }
+  },
+  "resolvedDescription": null,
+  "survey": null
 }
-
 ```
 
 **Error responses**
+
 - `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 - `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
 - `HTTP status code 403 Forbidden` (Access Denied Exception)
 - `HTTP status code 403 Forbidden` (Expert Not Allowed Exception)
 - `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 404 Not Found` (Expert Not Found Exception)
 - `HTTP status code 422 Unprocessable Entity` (Status Transition Exception)
 
 ---
+
 #### **`PATCH /api/{manager,expert}/tickets/:id/resolve`**
 
-Sets to RESOLVED the status field of a specific ticket associated with the id provided and fails if the id does not exist
+Expert or Manager sets to RESOLVED the status field of a specific ticket associated with the id provided
+
+**Request header:**
+
+- `Params: req.params.id to obtain the required id`
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Request body (just for manager):**
+
+```json
+{
+  "description": "resolved :) "
+}
+```
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+```json
+{
+  "id": 2,
+  "status": "RESOLVED",
+  "title": "Broken phone",
+  "description": "The phone is not turning on since yesterday",
+  "customer": {
+    "id": "79c12344-4092-4661-b0b3-287685340d7b",
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "email": "customer1@mail.com"
+  },
+  "expert": null,
+  "priorityLevel": null,
+  "product": {
+    "ean": "4935531465706",
+    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+    "brand": "JMT"
+  },
+  "createdDate": "2023-05-02T09:32:18.050+00:00",
+  "closedDate": "2023-05-08T10:32:18.050+00:00",
+  "specialization": {
+    "id": 1,
+    "name": "COMPUTER"
+  },
+  "resolvedDescription": null,
+  "survey": null
+}
+```
+
+**Error responses**
+
+- `HTTP status code 400 Unauthorized` (Failed to read Exception) (just for manager)
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Access Denied Exception)
+- `HTTP status code 403 Forbidden` (Expert Not Allowed Exception)
+- `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 404 Not Found` (Expert Not Found Exception)
+- `HTTP status code 422 Unprocessable Entity` (Status Transition Exception)
+
+---
+
+#### **`GET /api/{customer,expert,manager}/tickets/:id`**
+
+Retrieves the ticket with the given id.
+If you are a "Manager" you can take any ticket, otherwise in the case of "Customer" and "Expert" only the tickets
+assigned to them.
+
+**Request header:**
+
+- `Params: req.params.id to obtain the required id `
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body:**
+
+`HTTP status code 200 OK`
+
+```json
+{
+  "id": 2,
+  "status": "RESOLVED",
+  "title": "Broken phone",
+  "description": "The phone is not turning on since yesterday",
+  "customer": {
+    "id": "79c12344-4092-4661-b0b3-287685340d7b",
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "email": "customer1@mail.com"
+  },
+  "expert": null,
+  "priorityLevel": null,
+  "product": {
+    "ean": "4935531465706",
+    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+    "brand": "JMT"
+  },
+  "createdDate": "2023-05-02T09:32:18.050+00:00",
+  "closedDate": "2023-05-08T10:32:18.050+00:00",
+  "specialization": {
+    "id": 1,
+    "name": "COMPUTER"
+  },
+  "resolvedDescription": null,
+  "survey": null
+}
+```
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Expert Not Allowed Exception)
+- `HTTP status code 403 Forbidden` (Customer Not Allowed Exception)
+- `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 404 Not Found` (Customer Not Found Exception)
+- `HTTP status code 404 Not Found` (Expert Not Found Exception)
+
+---
+
+#### **`GET /api/{customer,expert,manager}/tickets[?product={productEan}]`**
+
+Retrieves all the tickets related to the product id provided.
+If you are a "Manager" you can take any ticket, otherwise in the case of "Customer" and "Expert" only the tickets
+assigned to them.
+If the "product Ean" is passed, the tickets are filtered for that product.
+
+**Request header:**
+
+- `[Params: req.params.productEan to obtain the required productEan] `
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body:**
+
+`HTTP status code 200 OK`
+
+```json
+[
+  {
+    "id": 2,
+    "status": "RESOLVED",
+    "title": "Broken phone",
+    "description": "The phone is not turning on since yesterday",
+    "customer": {
+      "id": "79c12344-4092-4661-b0b3-287685340d7b",
+      "name": "Giovanni",
+      "surname": "Rossi",
+      "email": "customer1@mail.com"
+    },
+    "expert": null,
+    "priorityLevel": null,
+    "product": {
+      "ean": "4935531465706",
+      "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+      "brand": "JMT"
+    },
+    "createdDate": "2023-05-02T09:32:18.050+00:00",
+    "closedDate": "2023-05-08T10:32:18.050+00:00",
+    "specialization": {
+      "id": 1,
+      "name": "COMPUTER"
+    },
+    "resolvedDescription": null,
+    "survey": null
+  },
+  ...
+]
+
+```
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 404 Not Found` (Product Not Found Exception)
+- `HTTP status code 404 Not Found` (Customer Not Found Exception)
+- `HTTP status code 404 Not Found` (Expert Not Found Exception)
+
+---
+
+#### **`GET /api/manager/tickets/changes`**
+
+Returns all changes
+
+**Request header:**
+
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body:**
+
+`HTTP status code 200 OK`
+
+```json
+[
+  {
+    "id": 150,
+    "fromStatus": null,
+    "toStatus": "OPEN",
+    "timestamp": "2023-10-20T19:47:35.530+00:00",
+    "ticket": {
+      "id": 2,
+      "status": "OPEN",
+      "title": "Broken phone",
+      "description": "The phone is not turning on since yesterday",
+      "customer": {
+        "id": "79c12344-4092-4661-b0b3-287685340d7b",
+        "name": "Giovanni",
+        "surname": "Rossi",
+        "email": "customer1@mail.com"
+      },
+      "expert": null,
+      "priorityLevel": null,
+      "product": {
+        "ean": "4935531465706",
+        "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+        "brand": "JMT"
+      },
+      "createdDate": "2023-05-02T09:32:18.050+00:00",
+      "closedDate": null,
+      "specialization": {
+        "id": 1,
+        "name": "COMPUTER"
+      },
+      "resolvedDescription": null,
+      "survey": null
+    },
+    "expert": null
+  },
+  ...
+]
+```
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Access Denied Exception)
+
+---
+
+#### **`GET /api/manager/tickets/experts`**
+
+Retrieves all the experts
+
+**Request header:**
+
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body:**
+
+`HTTP status code 200 OK`
+
+```json
+[
+  {
+    "id": "64c760b6-6e5c-42fb-924d-428d418e32eb",
+    "username": "expert1",
+    "workingOn": 0,
+    "specializations": [
+      {
+        "id": 1,
+        "name": "COMPUTER"
+      },
+      {
+        "id": 2,
+        "name": "MOBILE"
+      }
+      },
+      ...
+    ]
+
+```
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Access Denied Exception)
+
+---
+
+#### **`POST /api/customer/tickets/:id/survey`**
+
+Sends the survey for the specified ticket
+
+**Request header:**
+
+- `Params: req.params.id to obtain the required id`
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Request body:**
+
+```json
+{
+  "serviceValutation": 2,
+  "professionality": 3,
+  "comment": null
+}
+```
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+```json
+{
+  "id": 2,
+  "status": "RESOLVED",
+  "title": "Broken phone",
+  "description": "The phone is not turning on since yesterday",
+  "customer": {
+    "id": "79c12344-4092-4661-b0b3-287685340d7b",
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "email": "customer1@mail.com"
+  },
+  "expert": null,
+  "priorityLevel": null,
+  "product": {
+    "ean": "4935531465706",
+    "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
+    "brand": "JMT"
+  },
+  "createdDate": "2023-05-02T09:32:18.050+00:00",
+  "closedDate": "2023-05-08T10:32:18.050+00:00",
+  "specialization": {
+    "id": 1,
+    "name": "COMPUTER"
+  },
+  "resolvedDescription": null,
+  "survey": {
+    "serviceValutation": 2,
+    "professionality": 3,
+    "comment": null
+  }
+}
+```
+
+**Error responses**
+
+- `HTTP status code 400 Unauthorized` (Failed to read Exception)
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Access Denied Exception)
+- `HTTP status code 403 Forbidden` (Customer Not Allowed Exception)
+- `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 404 Not Found` (Customer Not Found Exception)
+- `HTTP status code 422 Unprocessable Entity` (Ticket not resolved yet Exception)
+
+### Messages APIs
+
+#### **`GET /api/{customer,expert}/tickets/:id/messages/history`**
+
+Returns all chat messages sent for a specific ticket
 
 **Request header:**
 
@@ -582,161 +1011,18 @@ Sets to RESOLVED the status field of a specific ticket associated with the id pr
 `HTTP status code 200 OK`
 
 ```json
-{
-    "id": 2,
-    "status": "RESOLVED",
-    "title": "Broken phone",
-    "description": "The phone is not turning on since yesterday",
-    "customer": {
-        "name": "Test",
-        "surname": "Test",
-        "email": "test@test.com"
-    },
-    "expert": null,
-    "priorityLevel": null,
-    "product": {
-        "ean": "4935531465706",
-        "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-        "brand": "JMT"
-    },
-    "createdDate": "2023-05-03T14:24:45.173+00:00",
-    "closedDate": "2023-05-03T14:33:35.494+00:00",
-    "specialization": {
-        "id": 1,
-        "name": "COMPUTER"
-    }
-}
-
-
-```
-
-**Error responses**
-- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
-- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
-- `HTTP status code 403 Forbidden` (Access Denied Exception)
-- `HTTP status code 403 Forbidden` (Expert Not Allowed Exception)
-- `HTTP status code 404 Not Found` (Ticket Not Found Exception)
-- `HTTP status code 422 Unprocessable Entity` (Status Transition Exception)
-
----
-
-#### **`GET /api/authenticated/tickets/:id`**
-
-Retrieves the ticket with the given id
-
-**Request header:**
-
-- `Params: req.params.id to obtain the required id `
-- `Content-Type: application/json`
-- `Authorization: Bearer <access_token>`
-
-**Response body:**
-
-JSON object containing the info of the ticket.
-
-`HTTP status code 200 OK`
-
-```json
-{
-    "id": 1,
-    "status": "RESOLVED",
-    "title": "Keyboard not working",
-    "description": "The keyboard doesn't react to the key pressing",
-    "customer": {
-        "name": "Test",
-        "surname": "Test",
-        "email": "test@test.com"
-    },
-    "expert": null,
-    "priorityLevel": null,
-    "product": {
-        "ean": "4935531465706",
-        "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-        "brand": "JMT"
-    },
-    "createdDate": "2023-05-02T09:32:18.050+00:00",
-    "closedDate": "2023-05-03T14:47:48.645+00:00",
-    "specialization": {
-        "id": 1,
-        "name": "COMPUTER"
-    }
-}
-```
-
-**Error responses**
-
-- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
-- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
-- `HTTP status code 404 Not Found` (Ticket Not Found Exception)
-
----
-
-#### **`GET /api/manager/tickets?product={productEan}`**
-
-Retrieves all the tickets related to the product id provided
-
-**Request header:**
-
-- `Params: req.params.productEan to obtain the required productEan `  
-- `Content-Type: application/json`
-- `Authorization: Bearer <access_token>`
-
-**Response body:**
-
-Array of JSON objects containing the information of the tickets associated with the product ID.
-
-`HTTP status code 200 OK`
-
-```json
 [
-    {
-        "id": 2,
-        "status": "CANCELLED",
-        "title": "Broken phone",
-        "description": "The phone is not turning on since yesterday",
-        "customer": {
-            "name": "Test",
-            "surname": "Test",
-            "email": "test@test.com"
-        },
-        "expert": null,
-        "priorityLevel": null,
-        "product": {
-            "ean": "4935531465706",
-            "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-            "brand": "JMT"
-        },
-        "createdDate": "2023-05-03T14:24:45.173+00:00",
-        "closedDate": "2023-05-03T14:33:35.494+00:00",
-        "specialization": {
-            "id": 1,
-            "name": "COMPUTER"
-        }
-    },
-    {
-        "id": 1,
-        "status": "RESOLVED",
-        "title": "Keyboard not working",
-        "description": "The keyboard doesn't react to the key pressing",
-        "customer": {
-            "name": "Test",
-            "surname": "TEST",
-            "email": "test@test.com"
-        },
-        "expert": null,
-        "priorityLevel": null,
-        "product": {
-            "ean": "4935531465706",
-            "name": "JMT X-ring 530x2 Gold 104 Open Chain With Rivet Link for Kawasaki KH 400 a 1976",
-            "brand": "JMT"
-        },
-        "createdDate": "2023-05-02T09:32:18.050+00:00",
-        "closedDate": "2023-05-03T14:47:48.645+00:00",
-        "specialization": {
-            "id": 1,
-            "name": "COMPUTER"
-        }
-    }
+  {
+    "text": "ciao",
+    "timestamp": "2023-10-24T18:00:37.923+00:00",
+    "isFromCustomer": false
+  },
+  {
+    "text": "ciao",
+    "timestamp": "2023-10-24T18:01:41.414+00:00",
+    "isFromCustomer": true
+  },
+  ...
 ]
 ```
 
@@ -745,7 +1031,309 @@ Array of JSON objects containing the information of the tickets associated with 
 - `HTTP status code 401 Unauthorized` (Unauthorized Exception)
 - `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
 - `HTTP status code 403 Forbidden` (Access Denied Exception)
-- `HTTP status code 404 Not Found` (Product Not Found Exception)
+- `HTTP status code 403 Forbidden` (Customer Not Allowed Exception)
+- `HTTP status code 403 Forbidden` (Expert Not Allowed Exception)
+- `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 404 Not Found` (Customer Not Found Exception)
+- `HTTP status code 404 Not Found` (Expert Not Found Exception)
+
+---
+
+### Attachments APIs
+
+#### **`GET /api/{customer,expert}/tickets/:id/attachments`**
+
+Returns all attachments sent for a specific ticket
+
+**Request header:**
+
+- `Params: req.params.id to obtain the required id`
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+```json
+[
+  {
+    "name": "file1.pdf",
+    "url": "http://localhost:8080/api/customer/tickets/2/attachments/file1.pdf"
+  },
+  ...
+]
+```
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Access Denied Exception)
+- `HTTP status code 403 Forbidden` (Customer Not Allowed Exception)
+- `HTTP status code 403 Forbidden` (Expert Not Allowed Exception)
+- `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 422 Unprocessable Entity` (Ticket not in progress Exception)
+
+---
+
+#### **`POST /api/{customer,expert}/tickets/:id/attachments`**
+
+Upload an attachment for a specific ticket
+
+**Request header:**
+
+- `Params: req.params.id to obtain the required id`
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Request body:**
+
+The attachment as multipart file
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Access Denied Exception)
+- `HTTP status code 403 Forbidden` (Customer Not Allowed Exception)
+- `HTTP status code 403 Forbidden` (Expert Not Allowed Exception)
+- `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 422 Unprocessable Entity` (Ticket not in progress Exception)
+- `HTTP status code 500 Internal Server Error` (Unexpected Exception)
+
+---
+
+#### **`GET /api/{customer,expert}/tickets/:id/attachments/:filename`**
+
+Downloads the specified attachment sent for a specific ticket
+
+**Request header:**
+
+- `Params: req.params.id to obtain the required id`
+- `Params: req.params.filename to obtain the required filename`
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+The requested file as bytes
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Access Denied Exception)
+- `HTTP status code 403 Forbidden` (Customer Not Allowed Exception)
+- `HTTP status code 403 Forbidden` (Expert Not Allowed Exception)
+- `HTTP status code 404 Not Found` (Ticket Not Found Exception)
+- `HTTP status code 422 Unprocessable Entity` (Ticket not in progress Exception)
+- `HTTP status code 500 Internal Server Error` (Unexpected Exception)
+
+---
+
+### Purchases APIs
+
+#### **`PUT /api/customer/purchases/:id/register`**
+
+Register specified purchase for a customer
+
+**Request header:**
+
+- `Params: req.params.id to obtain the required id`
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Access Denied Exception)
+- `HTTP status code 404 Not Found` (Purchase Not Found Exception)
+- `HTTP status code 404 Not Found` (Customer Not Found Exception)
+- `HTTP status code 409 Conflict` (Purchase already registered Exception)
+- `HTTP status code 500 Internal Server Error` (Unexpected Exception)
+
+---
+
+#### **`GET /api/customer/purchases/products`**
+
+Returns all purchased products for the customer
+
+**Request header:**
+
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+```json
+[
+  {
+    "products": [
+      {
+        "ean": "3528701753911",
+        "name": "1x Summer Tyre Michelin Pilot Sport 4 255/40zr17 98y El",
+        "brand": "Michelin"
+      },
+      {
+        "ean": "4894836830193",
+        "name": "2 in 1 out Dual Color Metal Hotend Extruder Kit With Cable 0.4mm Brass Nozz Y1e1",
+        "brand": "SODIAL"
+      },
+      {
+        "ean": "5018253112451",
+        "name": "Hollings Smoked Filled Shank Bone 100g",
+        "brand": "Hollings"
+      },
+      {
+        "ean": "9781784881795",
+        "name": "Darcey Bussell: Evolved by Darcey Bussell (Hardcover, 2018)",
+        "brand": "Hardie Grant Books (United Kingdom)"
+      }
+    ],
+    "purchasedAt": "2023-10-22T13:02:04.512+00:00"
+  },
+  ...
+]
+```
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (Access Denied Exception)
+- `HTTP status code 404 Not Found` (Customer Not Found Exception)
+
+---
+
+### Specializations APIs
+
+#### **`GET /api/authenticated/specializations`**
+
+Returns all specializations
+
+**Request header:**
+
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+```json
+[
+  {
+    "id": 1,
+    "name": "COMPUTER"
+  },
+  {
+    "id": 2,
+    "name": "MOBILE"
+  },
+  ...
+]
+```
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+
+---
+
+### Notifications APIs
+
+#### **`GET /api/authenticated/notifications**
+
+Returns all notifications for the logged in user
+
+**Request header:**
+
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+```json
+[
+  {
+    "id": "87173a95-01a6-4377-9e29-8e1e7dba6676",
+    "text": "Your ticket (48) has been closed",
+    "timestamp": "2023-10-27T16:11:03.218+00:00"
+  },
+  {
+    "id": "46bf27c1-780c-4dc1-85b7-17f88fa941db",
+    "text": "Your ticket (54) has been closed",
+    "timestamp": "2023-10-27T15:41:12.143+00:00"
+  },
+  {
+    "id": "976cfbab-dd62-4f6c-a6c8-8ddd65c225a5",
+    "text": "You have received a new message for the ticket 48",
+    "timestamp": "2023-10-27T15:39:32.689+00:00"
+  },
+  ...
+]
+```
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+
+---
+
+#### **`DELETE /api/authenticated/notifications/:id**
+
+Delete specified notification for the logged in user
+
+**Request header:**
+
+- `Params: req.params.id to obtain the required id`
+- `Content-Type: application/json`
+- `Authorization: Bearer <access_token>`
+
+**Response body**
+
+`HTTP status code 200 OK`
+
+```json
+[
+  {
+    "id": "87173a95-01a6-4377-9e29-8e1e7dba6676",
+    "text": "Your ticket (48) has been closed",
+    "timestamp": "2023-10-27T16:11:03.218+00:00"
+  },
+  {
+    "id": "46bf27c1-780c-4dc1-85b7-17f88fa941db",
+    "text": "Your ticket (54) has been closed",
+    "timestamp": "2023-10-27T15:41:12.143+00:00"
+  },
+  ...
+]
+```
+
+**Error responses**
+
+- `HTTP status code 401 Unauthorized` (Unauthorized Exception)
+- `HTTP status code 401 Unauthorized` (Expired or Revoked Token Exception)
+- `HTTP status code 403 Forbidden` (User not allowed Exception)
+- `HTTP status code 404 Not Found` (Notification Not Found Exception)
 
 ---
 
@@ -756,16 +1344,15 @@ Array of JSON objects containing the information of the tickets associated with 
 Perform login
 
 **Request header:**
+
 - `Content-Type: application/json`
 
 **Request body:**
 
-JSON object containing username, password
-
 ```json
 {
-    "username": "customer1",
-    "password": "customer"
+  "username": "customer1",
+  "password": "customer"
 }
 ```
 
@@ -796,7 +1383,7 @@ JSON object containing username, password
 **Error responses**
 
 - `HTTP status code 400 Bad Request` (Failed to read Exception)
-- `HTTP status code 401 Unauthorized ` (Invalid User Credentials Exception)     
+- `HTTP status code 401 Unauthorized ` (Invalid User Credentials Exception)
 - `HTTP status code 403 Forbidden ` (Access Denied Exception)
 - `HTTP status code 404 Not Found` (Employee or Profile Not Found Exception)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
@@ -808,12 +1395,11 @@ JSON object containing username, password
 Refresh authentication tokens.
 
 **Request header:**
+
 - `Content-Type: application/json`
 - `[Authorization: Bearer <access_token>]`
 
 **Request body:**
-
-JSON object containing the refresh token
 
 ```json
 {
@@ -846,6 +1432,7 @@ JSON object containing the refresh token
 Close the current session and invalidating the access token.
 
 **Request header:**
+
 - `Content-Type: application/json`
 - `Authorization: Bearer <access_token>`
 
@@ -860,24 +1447,23 @@ Close the current session and invalidating the access token.
 
 #### **`POST /api/anonymous/auth/signup`**
 
-Register a new customer profile 
+Register a new customer profile
 
 **Request header:**
+
 - `Content-Type: application/json`
 
 **Request body:**
-
-JSON object containing name, surname, an object "details" with password, email and username.
 
 ```json
 {
   "username": "mariorossi",
   "email": "mariorossi@mail.com",
   "password": "Password1?",
-    "details" : {
-        "name": "Mario",
-        "surname": "Rossi"
-    }
+  "details": {
+    "name": "Mario",
+    "surname": "Rossi"
+  }
 }
 ```
 
@@ -887,7 +1473,7 @@ JSON object containing name, surname, an object "details" with password, email a
 
 ```json
 {
-  "username" : "mariorossi",
+  "username": "mariorossi",
   "email": "mariorossi@mail.com"
 }
 ```
@@ -906,12 +1492,11 @@ JSON object containing name, surname, an object "details" with password, email a
 Register a new expert profile
 
 **Request header:**
+
 - `Content-Type: application/json`
 - `Authorization: Bearer <access_token>`
 
 **Request body:**
-
-JSON object containing an object "details" with password, email and username and a set of specialization ids
 
 ```json
 {
@@ -919,7 +1504,10 @@ JSON object containing an object "details" with password, email and username and
   "email": "giuliobianchi@mail.com",
   "password": "Password1?",
   "details": {
-    "specializations": [1, 2]
+    "specializations": [
+      1,
+      2
+    ]
   }
 }
 ```
@@ -930,7 +1518,7 @@ JSON object containing an object "details" with password, email and username and
 
 ```json
 {
-  "username" : "giuliobianchi",
+  "username": "giuliobianchi",
   "email": "giuliobianchi@mail.com"
 }
 ```
@@ -944,4 +1532,5 @@ JSON object containing an object "details" with password, email and username and
 - `HTTP status code 404 Not Found ` (Specialization Not Found Exception)
 - `HTTP status code 409 Conflict ` (Username or Email Already Exists Exception)
 - `HTTP status code 422 Unprocessable Entity` (Validation Exception)
+
 ---
