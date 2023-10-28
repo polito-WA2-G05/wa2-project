@@ -121,3 +121,12 @@ create table if not exists notifications
     receiver  uuid             not null,
     timestamp timestamptz      not null
 );
+
+create table if not exists attachments
+(
+    id        uuid primary key not null,
+    filename  text             not null,
+    ticket_id int              not null,
+
+    FOREIGN KEY (ticket_id) REFERENCES tickets (id)
+);
