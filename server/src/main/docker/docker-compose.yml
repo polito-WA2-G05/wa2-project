@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   server:
-    image: 'gcr.io/g5project-385811/server:latest'
+    image: 'ghcr.io/polito-wa2-g05/server:latest'
     build:
       context: .
     container_name: g05-server
@@ -23,7 +23,7 @@ services:
       - ./config/.env.docker
 
   keycloak:
-    image: 'gcr.io/g5project-385811/keycloak:latest'
+    image: 'ghcr.io/polito-wa2-g05/keycloak:latest'
     container_name: g05-keycloak
     command:
       - start-dev --http-port=8081
@@ -31,7 +31,7 @@ services:
       - "8081:8081"
 
   database:
-    image: 'gcr.io/g5project-385811/database:latest'
+    image: 'ghcr.io/polito-wa2-g05/database:latest'
     container_name: g05-database
     ports:
       - "5432:5432"
