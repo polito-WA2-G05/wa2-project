@@ -22,7 +22,10 @@ class MessageController(
     /* GET /api/customer/tickets/{id}/messages/history */
 
     @GetMapping("/api/customer/tickets/{id}/messages/history")
-    fun customerGetMessagesHistory(@RequestHeader("Authorization") token: String, @PathVariable id: Long) : List<MessageDTO> {
+    fun customerGetMessagesHistory(
+        @RequestHeader("Authorization") token: String,
+        @PathVariable id: Long
+    ): List<MessageDTO> {
         log.info("Customer gets Ticket $id messages history")
         return messageService.customerGetMessagesHistory(token, id)
     }
@@ -30,7 +33,10 @@ class MessageController(
     /* GET /api/expert/tickets/{id}/messages/history */
 
     @GetMapping("/api/expert/tickets/{id}/messages/history")
-    fun expertGetMessagesHistory(@RequestHeader("Authorization") token: String, @PathVariable id: Long) : List<MessageDTO> {
+    fun expertGetMessagesHistory(
+        @RequestHeader("Authorization") token: String,
+        @PathVariable id: Long
+    ): List<MessageDTO> {
         log.info("Expert gets Ticket $id messages history")
         return messageService.expertGetMessagesHistory(token, id)
     }

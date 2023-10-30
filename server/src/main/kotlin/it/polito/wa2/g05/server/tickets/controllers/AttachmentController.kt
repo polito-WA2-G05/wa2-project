@@ -27,7 +27,7 @@ class AttachmentController(private val fileStorageService: FileStorageService) {
     fun customerUploadAttachment(
         @RequestHeader("Authorization") token: String,
         @PathVariable id: Long,
-        @RequestParam("file") file: MultipartFile
+        @RequestParam("file") file: MultipartFile,
     ) {
         log.info("Customer uploads new attachment for ticket $id")
         fileStorageService.save(token, id, file)

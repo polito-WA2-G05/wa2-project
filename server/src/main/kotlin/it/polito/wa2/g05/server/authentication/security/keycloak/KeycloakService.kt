@@ -193,7 +193,7 @@ class KeycloakService(
             .realm(properties.realm)
             .users()
             .get(userUUID)
-            .executeActionsEmail(properties.clientId, "http://localhost:3000", mutableListOf("VERIFY_EMAIL"))
+            .executeActionsEmail(properties.clientId, "http://localhost:${properties.redirectUriPort}", mutableListOf("VERIFY_EMAIL"))
 
         return UUID.fromString(userUUID)
     }

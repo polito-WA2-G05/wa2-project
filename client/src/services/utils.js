@@ -42,7 +42,6 @@ const utils = {
 				.catch(err => reject(err.response.data))
 		})
 	}
-
 }
 
 export default utils;
