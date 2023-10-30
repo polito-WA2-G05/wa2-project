@@ -1,6 +1,5 @@
 version: '3'
 
-name: "g05-observability"
 services:
   tempo:
     image: grafana/tempo

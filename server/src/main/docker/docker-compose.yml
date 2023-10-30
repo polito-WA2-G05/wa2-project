@@ -1,6 +1,5 @@
 version: '3.8'
 
-name: "g05-app"
 services:
   server:
     image: 'ghcr.io/polito-wa2-g05/server:latest'
