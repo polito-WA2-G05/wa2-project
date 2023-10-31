@@ -4,6 +4,8 @@ import it.polito.wa2.g05.server.products.dtos.ProductDTO
 import it.polito.wa2.g05.server.products.dtos.toDTO
 import it.polito.wa2.g05.server.profiles.dtos.ProfileDTO
 import it.polito.wa2.g05.server.profiles.dtos.toDTO
+import it.polito.wa2.g05.server.specializations.dtos.SpecializationDTO
+import it.polito.wa2.g05.server.specializations.dtos.toDTO
 import it.polito.wa2.g05.server.tickets.entities.Ticket
 import it.polito.wa2.g05.server.tickets.utils.PriorityLevel
 import it.polito.wa2.g05.server.tickets.utils.TicketStatus
@@ -20,9 +22,11 @@ data class TicketDTO(
     val product: ProductDTO,
     val createdDate: Date,
     val closedDate: Date?,
-    val specialization: SpecializationDTO
+    val specialization: SpecializationDTO,
+    val resolvedDescription: String?,
+    val survey: SurveyDTO?
 )
 
 fun Ticket.toDTO(): TicketDTO {
-    return TicketDTO(id, status, title, description, customer.toDTO(), expert?.toDTO(), priorityLevel , product.toDTO(), createdDate, closedDate, specialization.toDTO())
+    return TicketDTO(id, status, title, description, customer.toDTO(), expert?.toDTO(), priorityLevel , product.toDTO(), createdDate, closedDate, specialization.toDTO(), resolvedDescription, survey?.toDTO())
 }

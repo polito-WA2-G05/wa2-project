@@ -1,5 +1,6 @@
 package it.polito.wa2.g05.server.authentication.services
 
+import io.micrometer.observation.annotation.Observed
 import it.polito.wa2.g05.server.authentication.dtos.*
 import it.polito.wa2.g05.server.authentication.utils.UserDetails
 import it.polito.wa2.g05.server.authentication.security.keycloak.KeycloakService
@@ -8,15 +9,17 @@ import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
 import it.polito.wa2.g05.server.profiles.dtos.toDTO
 import it.polito.wa2.g05.server.profiles.entities.Profile
 import it.polito.wa2.g05.server.profiles.repositories.ProfileRepository
+import it.polito.wa2.g05.server.specializations.repositories.SpecializationRepository
 import it.polito.wa2.g05.server.tickets.EmployeeNotFoundException
 import it.polito.wa2.g05.server.tickets.SpecializationNotFoundException
 import it.polito.wa2.g05.server.tickets.dtos.toDTO
 import it.polito.wa2.g05.server.tickets.entities.Employee
 import it.polito.wa2.g05.server.tickets.repositories.EmployeeRepository
-import it.polito.wa2.g05.server.tickets.repositories.SpecializationRepository
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.http.ResponseEntity
 
+@Observed
 @Service
 class AuthenticationServiceImpl(
     private val keycloakService: KeycloakService,
@@ -24,6 +27,8 @@ class AuthenticationServiceImpl(
     private val profileRepository: ProfileRepository,
     private val specializationRepository: SpecializationRepository,
 ) : AuthenticationService {
+
+    private val log = LoggerFactory.getLogger("AuthenticationServiceImpl")
 
     override fun signup(data: UserFormDTO<ProfileDetailsDTO>): CreatedUserDTO {
         val uuid = keycloakService.createUser(data.email, data.username, data.password, Role.CUSTOMER)
@@ -38,12 +43,16 @@ class AuthenticationServiceImpl(
     override fun createExpert(data: UserFormDTO<ExpertDetailsDTO>): CreatedUserDTO {
         val specializations = data.details.specializations.map {
             specializationRepository.findById(it)
-                .orElseThrow { SpecializationNotFoundException(it) }
+                .orElseThrow {
+                    log.error("Specialization not found")
+                    SpecializationNotFoundException(it)
+                }
         }.toMutableSet()
 
         val uuid = keycloakService.createUser(data.email, data.username, data.password, Role.EXPERT)
+        val username = keycloakService.getUser(uuid).username
 
-        val employee = Employee(uuid, specializations)
+        val employee = Employee(uuid, username, specializations)
 
         employeeRepository.save(employee)
 
@@ -53,9 +62,11 @@ class AuthenticationServiceImpl(
     private fun createAuthenticatedUser(isEmployee: Boolean, user: UserDetails): AuthenticatedUserDTO =
         AuthenticatedUserDTO(
             if (isEmployee) employeeRepository.findById(user.uuid).orElseThrow {
+                log.error("Employee not found")
                 EmployeeNotFoundException(user.uuid)
             }.toDTO()
             else profileRepository.findById(user.uuid).orElseThrow {
+                log.error("Profile not found")
                 ProfileNotFoundException(user.email)
             }.toDTO(),
             user

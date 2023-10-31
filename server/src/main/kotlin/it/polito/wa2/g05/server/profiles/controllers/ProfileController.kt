@@ -8,12 +8,7 @@ import it.polito.wa2.g05.server.profiles.services.ProfileService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.validation.BindingResult
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Observed
 @RestController
@@ -22,25 +17,25 @@ class ProfileController(private val profileService: ProfileService) {
 
     private val log = LoggerFactory.getLogger("ProfileController")
 
-    /* GET /api/public/profiles/{email} */
+    /* GET /api/public/profiles/me */
 
-    @GetMapping("/customer/profiles/{email}")
-    fun getProfile(@PathVariable email: String): ProfileDTO {
-        log.info("Getting the profile by email")
-        return profileService.getProfile(email)
+    @GetMapping("/customer/profiles/me")
+    fun getProfile(@RequestHeader("Authorization") token: String): ProfileDTO {
+        log.info("Customer get his profile")
+        return profileService.getProfile(token)
     }
 
-    /* PUT /api/customer/profiles/{email} */
+    /* PUT /api/customer/profiles/me */
 
-    @PutMapping("/customer/profiles/{email}")
+    @PutMapping("/customer/profiles/me")
     fun updateProfile(
-        @PathVariable email: String,
+        @RequestHeader("Authorization") token: String,
         @RequestBody @Valid data: ProfileFormDTO,
         br: BindingResult
     ): ProfileDTO {
         if (br.hasErrors())
             throw ValidationException(br.fieldErrors)
-        log.info("Update profile by $email")
-        return profileService.updateProfile(email, data)
+        log.info("Customer updates his profile")
+        return profileService.updateProfile(token, data)
     }
 }

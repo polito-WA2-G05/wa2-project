@@ -10,5 +10,6 @@ data class KeycloakProperties(
     @Value("\${keycloak.realm}") val realm: String,
     @Value("\${keycloak.resource}") val clientId: String,
     @Value("\${keycloak.auth-server-url}") val authServerUrl: String,
-    @Value("\${keycloak.credentials.secret}") val secret: String
+    @Value("\${keycloak.credentials.secret}") val secret: String,
+    @Value("\${client.port}") val redirectUriPort: String
 )

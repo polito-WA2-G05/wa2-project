@@ -2,6 +2,7 @@ package it.polito.wa2.g05.server.tickets.entities
 
 import it.polito.wa2.g05.server.products.entities.Product
 import it.polito.wa2.g05.server.profiles.entities.Profile
+import it.polito.wa2.g05.server.specializations.entities.Specialization
 import it.polito.wa2.g05.server.tickets.utils.PriorityLevel
 import it.polito.wa2.g05.server.tickets.utils.TicketStatus
 import it.polito.wa2.g05.server.utils.SerialIdEntity
@@ -42,5 +43,12 @@ class Ticket(
 
     @ManyToOne
     @JoinColumn(name="specialization_id" , referencedColumnName = "id")
-    var specialization: Specialization
+    var specialization: Specialization,
+
+    @Column(name="resolved_description")
+    var resolvedDescription: String? = null,
+
+    @OneToOne
+    @JoinColumn(name="survey_id", referencedColumnName = "id")
+    var survey: Survey? = null
 ): SerialIdEntity()

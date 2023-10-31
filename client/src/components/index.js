@@ -1,6 +1,20 @@
-export {default as Layout} from "./Layout"
-export {default as Navbar} from "./Navbar"
-export {default as Footer} from "./Footer"
-export {default as ProductTable} from "./ProductTable"
-export {default as ProfileForm} from './ProfileForm'
-export {default as Info} from './Info'
+export {default as ProductsTable} from "./tables/ProductsTable"
+export {default as ChangesTable} from "./tables/ChangesTable"
+export {default as ExpertsTable} from "./tables/ExpertsTable"
+
+export {default as PriorityModal} from "./modals/PriorityModal"
+export {default as AttachmentModal} from './modals/AttachmentModal'
+export {default as ResolveModal} from "./modals/ResolveModal"
+export {default as SurveyModal} from "./modals/SurveyModal"
+export {default as UploadedAttachmentsModal} from "./modals/UploadedAttachmentsModal"
+
+export {default as SwitchButton} from "./SwitchButton"
+export {default as InfoCard} from "./InfoCard"
+
+export {default as TicketAccordion} from "./TicketAccordion"
+export {default as TicketActions} from "./TicketActions"
+
+export {default as ChatMessage} from './ChatMessage'
+export {default as MessageInput} from './MessageInput'
+
+export {default as NotificationCenter} from './NotificationCenter'

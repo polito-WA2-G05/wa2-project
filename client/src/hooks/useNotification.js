@@ -1,3 +1,4 @@
+// Imports
 import { toast } from "react-toastify";
 
 const useNotification = () => {
@@ -16,7 +17,7 @@ const useNotification = () => {
         error: (error) => {
             toast.error(error, {
                 type: toast.TYPE.ERROR,
-                position: toast.POSITION.TOP_RIGHT,
+                position: toast.POSITION.TOP_CENTER,
                 theme: 'colored',
                 ...notification,
             });
@@ -25,11 +26,21 @@ const useNotification = () => {
         success: (response) => {
             toast.success(response, {
                 type: toast.TYPE.SUCCESS,
-                position: toast.POSITION.TOP_RIGHT,
+                position: toast.POSITION.TOP_CENTER,
                 theme: 'colored',
                 ...notification,
             });
-        }
+        },
+
+        info: (response) => {
+            toast.info(response, {
+                type: toast.TYPE.INFO,
+                position: toast.POSITION.TOP_CENTER,
+                theme: 'colored',
+                ...notification,
+            });
+        },
+
     }
 
     return notify;

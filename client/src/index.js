@@ -1,19 +1,24 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import "bootstrap/dist/css/bootstrap.css"
-import 'react-toastify/dist/ReactToastify.min.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import "bootstrap/dist/css/bootstrap.css";
+import "react-toastify/dist/ReactToastify.min.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
 import {BrowserRouter} from "react-router-dom";
 import {ToastContainer} from "react-toastify";
+import {NotificationProvider, SessionProvider} from '@contexts'
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
     <React.StrictMode>
-        <ToastContainer newestOnTop={false} />
+        <ToastContainer newestOnTop={false} style={{zIndex: 999999}}/>
         <BrowserRouter>
-            <App />
+            <SessionProvider>
+                <NotificationProvider>
+                    <App/>
+                </NotificationProvider>
+            </SessionProvider>
         </BrowserRouter>
     </React.StrictMode>
 );

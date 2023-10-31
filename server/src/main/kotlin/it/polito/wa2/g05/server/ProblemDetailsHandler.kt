@@ -3,9 +3,13 @@ package it.polito.wa2.g05.server
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.observation.annotation.Observed
 import it.polito.wa2.g05.server.authentication.UsernameOrEmailAlreadyExistsException
+import it.polito.wa2.g05.server.notifications.NotificationNotFoundException
 import it.polito.wa2.g05.server.products.ProductNotFoundException
 import it.polito.wa2.g05.server.profiles.EmailAlreadyExistingException
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
+import it.polito.wa2.g05.server.purchases.PurchaseAlreadyRegistered
+import it.polito.wa2.g05.server.purchases.PurchaseNotFoundException
+import it.polito.wa2.g05.server.purchases.PurchaseRegistrationFailed
 import it.polito.wa2.g05.server.tickets.*
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
@@ -72,11 +76,17 @@ class ProblemDetailsHandler : ResponseEntityExceptionHandler() {
     }
 
     @ExceptionHandler(WebApplicationException::class)
-    fun handleWebApplicationError(e: WebApplicationException) =
-        ProblemDetail.forStatusAndDetail(
+    fun handleWebApplicationError(e: WebApplicationException): ProblemDetail {
+        var message = e.message
+        if (HttpStatus.valueOf(e.response.status) == HttpStatus.CONFLICT) {
+            message = "A user with the same username/email already exists"
+        }
+
+        return ProblemDetail.forStatusAndDetail(
             HttpStatus.valueOf(e.response.status),
-            e.message!!
+            message!!
         )
+    }
 
 
     /* Product Exception Handlers */
@@ -89,11 +99,11 @@ class ProblemDetailsHandler : ResponseEntityExceptionHandler() {
     /* Profile Exception Handlers */
 
     @ExceptionHandler(ProfileNotFoundException::class)
-    fun handleProductNotFound(e: ProfileNotFoundException) =
+    fun handleProfileNotFound(e: ProfileNotFoundException) =
         ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message!!)
 
     @ExceptionHandler(EmailAlreadyExistingException::class)
-    fun handleProductNotFound(e: EmailAlreadyExistingException) =
+    fun handleEmailAlreadyExisting(e: EmailAlreadyExistingException) =
         ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.message!!)
 
     /* Ticket Exception Handlers */
@@ -103,7 +113,7 @@ class ProblemDetailsHandler : ResponseEntityExceptionHandler() {
         ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message!!)
 
     @ExceptionHandler(TicketStatusNotValidException::class)
-    fun handleTicketNotFound(e: TicketStatusNotValidException) =
+    fun handleTicketStatusNotValid(e: TicketStatusNotValidException) =
         ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.message!!)
 
     @ExceptionHandler(ForbiddenActionException::class)
@@ -139,6 +149,26 @@ class ProblemDetailsHandler : ResponseEntityExceptionHandler() {
     @ExceptionHandler(AccessDeniedException::class)
     fun handleAccessDenied(e: AccessDeniedException) =
         ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.message!!)
+
+    /* Purchase Exception Handlers */
+
+    @ExceptionHandler(PurchaseNotFoundException::class)
+    fun handlePurchaseNotFound(e: PurchaseNotFoundException) =
+        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message!!)
+
+    @ExceptionHandler(PurchaseAlreadyRegistered::class)
+    fun handlePurchaseAlreadyRegistered(e: PurchaseAlreadyRegistered) =
+        ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.message!!)
+
+    @ExceptionHandler(PurchaseRegistrationFailed::class)
+    fun handlePurchaseRegisttrationFailed(e: PurchaseRegistrationFailed) =
+        ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.message!!)
+
+    /* NotificationCenter Exception Handlers */
+
+    @ExceptionHandler(NotificationNotFoundException::class)
+    fun handlePurchaseRegisttrationFailed(e: NotificationNotFoundException) =
+        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message!!)
 }
 
 data class ValidationError(

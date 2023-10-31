@@ -9,6 +9,7 @@ import org.keycloak.OAuth2Constants.PASSWORD
 import org.keycloak.OAuth2Constants.REFRESH_TOKEN
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.Keycloak
+import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
@@ -91,7 +92,7 @@ class KeycloakService(
         val userRepresentation = UserRepresentation()
         userRepresentation.username = username
         userRepresentation.email = email
-        userRepresentation.isEmailVerified = true
+        userRepresentation.isEmailVerified = false
         userRepresentation.credentials = listOf(credentialRepresentation)
         userRepresentation.isEnabled = true
         return userRepresentation
@@ -143,6 +144,12 @@ class KeycloakService(
 
     /* Public service methods */
 
+    fun getUser(userUUID: UUID): UserRepresentation =
+        keycloak.realm(properties.realm)
+            .users()
+            .get(userUUID.toString())
+            .toRepresentation()
+
     /**
      * Gets the user authorities, so its client roles, by its UUID.
      *
@@ -181,6 +188,12 @@ class KeycloakService(
 
         val roleRepresentation = this.findRoleByName(role.roleName)
         this.assignRole(userUUID, roleRepresentation)
+
+        keycloak
+            .realm(properties.realm)
+            .users()
+            .get(userUUID)
+            .executeActionsEmail(properties.clientId, "http://localhost:${properties.redirectUriPort}", mutableListOf("VERIFY_EMAIL"))
 
         return UUID.fromString(userUUID)
     }

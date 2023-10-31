@@ -11,9 +11,5 @@ data class ProfileFormDTO(
 
     @field:NotBlank
     @field:Pattern(regexp = "^\\s*[a-zA-Z]+(?:[\\s-][a-zA-Z][a-z]+)*\\s*\$", message = "Invalid format")
-    var surname: String,
-
-//    @field:Email
-//    @field:NotBlank
-//    var email: String
+    var surname: String
 )

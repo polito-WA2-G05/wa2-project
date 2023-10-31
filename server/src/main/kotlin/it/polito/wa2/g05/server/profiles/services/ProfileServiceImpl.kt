@@ -1,6 +1,8 @@
 package it.polito.wa2.g05.server.profiles.services
 
 import io.micrometer.observation.annotation.Observed
+import it.polito.wa2.g05.server.authentication.security.jwt.JwtDecoder
+import it.polito.wa2.g05.server.authentication.utils.UserDetails
 import it.polito.wa2.g05.server.profiles.ProfileNotFoundException
 import it.polito.wa2.g05.server.profiles.dtos.ProfileDTO
 import it.polito.wa2.g05.server.profiles.dtos.ProfileFormDTO
@@ -11,25 +13,32 @@ import org.springframework.stereotype.Service
 
 @Service
 @Observed
-class ProfileServiceImpl(private val profileRepository: ProfileRepository) : ProfileService {
+class ProfileServiceImpl(
+    private val profileRepository: ProfileRepository,
+    private val jwtDecoder: JwtDecoder
+) : ProfileService {
 
     private val log = LoggerFactory.getLogger("ProfileServiceImpl")
 
-    override fun getProfile(email: String): ProfileDTO =
-        profileRepository.findByEmail(email).orElseThrow {
-            log.error("Exception throws processing the $email in getting profile")
-            throw ProfileNotFoundException(email)
-        }.toDTO()
+    override fun getProfile(token: String): ProfileDTO {
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
 
-    override fun updateProfile(email: String, data: ProfileFormDTO): ProfileDTO {
-        val profile = profileRepository.findByEmail(email).orElseThrow {
-            log.error("Profile couldn't be updated for the $email provided")
-            throw ProfileNotFoundException(email)
+        return profileRepository.findById(customerId).orElseThrow {
+            log.error("Profile not found")
+            throw ProfileNotFoundException(customerId.toString())
+        }.toDTO()
+    }
+
+    override fun updateProfile(token: String, data: ProfileFormDTO): ProfileDTO {
+        val customerId = UserDetails(jwtDecoder.decode(token)).uuid
+
+        val profile = profileRepository.findById(customerId).orElseThrow {
+            log.error("Profile not found")
+            throw ProfileNotFoundException(customerId.toString())
         }
 
         profile.name = data.name
         profile.surname = data.surname
-        // profile.email = data.email
 
         return profileRepository.save(profile).toDTO()
     }

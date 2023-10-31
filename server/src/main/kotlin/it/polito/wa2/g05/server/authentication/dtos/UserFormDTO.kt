@@ -13,7 +13,7 @@ data class UserFormDTO<T : UserDetailsDTO>(
 
     @field:NotBlank
     @field:Pattern(
-        regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+        regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&.])[A-Za-z\\d@$!%*?&.]{8,}$",
         message = "Invalid password format"
     )
     val password: String,
