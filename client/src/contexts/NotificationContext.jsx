@@ -22,7 +22,7 @@ const NotificationContext = createContext(null)
 const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([])
     const [connected, setConnected] = useState(false)
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
 
     const { session } = useContext(SessionContext)
     const notify = useNotification()
@@ -30,12 +30,16 @@ const NotificationProvider = ({ children }) => {
     const stompClient = useRef(null)
 
     useEffect(() => {
+        if (session) setLoading(true)
+    }, [session])
+
+    useEffect(() => {
         if (loading && session)
             api.utils.getNotifications()
                 .then(notifications => setNotifications(notifications))
                 .catch(err => notify.error(err.detail ?? err))
                 .finally(() => setLoading(false))
-    }, [loading, session]) // eslint-disable-line
+    }, [session, loading]) // eslint-disable-line
 
     useEffect(() => {
         if (session && !connected && !stompClient.current) {
@@ -71,10 +75,16 @@ const NotificationProvider = ({ children }) => {
         stompClient.current.send(path, {}, JSON.stringify({ ...message, timestamp: new Date() }))
     }
 
-    if (!session) return children
+    const disconnect = () => {
+        stompClient.current.disconnect(() => {
+            setNotifications([])
+            setConnected(false)
+            stompClient.current = null
+        })
+    }
 
-    if (session && connected)
-        return <NotificationContext.Provider value={{ notifications, sendNotification, deleteNotification }}>
+    if (!loading)
+        return <NotificationContext.Provider value={{ notifications, sendNotification, deleteNotification, disconnect }}>
             {children}
         </NotificationContext.Provider>
 

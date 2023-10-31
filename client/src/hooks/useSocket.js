@@ -51,7 +51,14 @@ const useSocket = (
         onSendMessage()
     }
 
-    return {connected, messages, sendMessage, setInitialMessages: (messages) => setMessages(messages)}
+    const disconnect = () => {
+        stompClient.current.disconnect(() => {
+            setMessages([])
+            setConnected(false)
+        })
+    }
+
+    return {connected, messages, sendMessage, setInitialMessages: (messages) => setMessages(messages), disconnect}
 }
 
 export default useSocket

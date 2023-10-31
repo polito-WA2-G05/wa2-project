@@ -11,7 +11,7 @@ import api from '@services';
 import {useNotification} from '@hooks';
 
 // Contexts
-import {SessionContext} from "@contexts";
+import {SessionContext, NotificationContext} from "@contexts";
 
 import {guestNavigation, navigation} from "./navigation";
 
@@ -20,6 +20,8 @@ import {guestNavigation, navigation} from "./navigation";
 const Navbar = () => {
     const {session, role, deleteSession} = useContext(SessionContext);
 
+    const {disconnect} = useContext(NotificationContext)
+
     const notify = useNotification();
     const navigate = useNavigate();
 
@@ -27,6 +29,7 @@ const Navbar = () => {
         api.auth.logout()
             .then(() => {
                 deleteSession();
+                disconnect()
                 navigate('/', {replace: true});
                 notify.success("See you soon!");
             })

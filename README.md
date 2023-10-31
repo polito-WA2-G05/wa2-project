@@ -42,7 +42,7 @@ following `environment` for `server` service:
 ```yml
 services:
   server:
-    image: "gcr.io/g5project-385811/server:latest"
+    image: 'ghcr.io/polito-wa2-g05/server:latest'
 
     # Don't change here
 
@@ -61,13 +61,15 @@ Then you can start services with no error logs using the command above.
 
 If you have pulled our images, you will be able to use the following user credentials to perform login:
 
-| username  | password | role     |
-|-----------|----------|----------|
-| customer1 | customer | Customer |
-| customer2 | customer | Customer |
-| expert1   | expert   | Expert   |
-| expert2   | expert   | Expert   |
-| manager1  | manager  | Manager  |
+| username  | password      | role     |
+|-----------|---------------|----------|
+| customer1 | Password123?  | Customer |
+| customer2 | Password123?  | Customer |
+| expert1   | Password123?  | Expert   |
+| expert2   | Password123?  | Expert   |
+| expert3   | Password123?  | Expert   |
+| expert4   | Password123?  | Expert   |
+| manager1  | Password123?  | Manager  |
 
 ## Server APIs
 

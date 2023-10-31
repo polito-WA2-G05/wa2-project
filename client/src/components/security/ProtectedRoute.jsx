@@ -1,6 +1,6 @@
 // Import
 import { useContext, useEffect } from "react"
-import { Outlet, useNavigate } from "react-router-dom";
+import {Outlet, useNavigate} from "react-router-dom";
 
 // Context
 import { useNotification } from "@hooks";
